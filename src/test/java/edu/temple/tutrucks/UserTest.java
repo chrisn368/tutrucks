@@ -15,16 +15,16 @@ import org.junit.*;
 import static org.junit.Assert.*;
 
 
-public class UserTest {
+public class UserTest extends IntegrationTestUsingResources {
     private ItemReview itemReview;
     private TruckReview truckReview;  
     private User user;
     
-   @Before
+    @Before
     public void setUpMock() {
         itemReview = new ItemReview();   
         truckReview =  new TruckReview();
-        user = new User();               
+        user = new User();
     }
     
     @Test
@@ -58,27 +58,25 @@ public class UserTest {
         System.out.println("Verifying that the item review was not added to the user list");
         assertEquals(user.getTruckReviews().contains(itemReview), false);
     }
-    /*
+    
     @Test
-    public void encryptionTest() {
-        String password = "password";
-        Random salter = new java.security.SecureRandom();
-        byte[] salt = new byte[16];
-        salter.nextBytes(salt);
-        String encrypted = User.encryptPassword(password, salt);
-        System.out.println("encrypted password: " + encrypted);
-    } */
-    /*
+    public void testCreateUser() {
+        assertEquals(IntegrationTestResources.EMAIL, IntegrationTestResources.getTestUser().getUserEmail());
+    }
+    
     @Test
-    public void createUser() {
-        String email = "nick.dellosa@yahoo.com";
-        String password = "myninnie";
-        User me = User.createUser(email, password, false, null, null);
-        assertEquals(me.getUserEmail(), email);
-        String eps = me.getPassWord();
-        assertNotEquals(eps, password);
-        System.out.println(eps);
-    } */
+    public void testValidateUser() {
+        User testUser = User.validateUser(IntegrationTestResources.EMAIL, IntegrationTestResources.PASSWORD);
+        assertEquals(IntegrationTestResources.getTestUser(), testUser);
+    }
+    
+    @Test
+    public void testValidateUserMultiple() {
+        for (int i=0; i < 5; i++) {
+            User testUser = User.validateUser(IntegrationTestResources.EMAIL, IntegrationTestResources.PASSWORD);
+            assertEquals(IntegrationTestResources.getTestUser(), testUser);
+        }
+    }
 }
 
 

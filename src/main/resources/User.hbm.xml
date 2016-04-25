@@ -10,7 +10,7 @@
     <property name="userEmail" type="string">
       <column name="user_email" not-null="true"/>
     </property>
-    <property name="passWord" type="string">
+    <property name="passWord" type="binary">
       <column name="pass_word"/>
     </property>
     <property name="fbLink" type="boolean">

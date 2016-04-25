@@ -19,8 +19,8 @@
                                 <input type="hidden" id="facebook_id" name="fbID" />
                                 <input type="hidden" id="display" name="display" />
                                 <input type="hidden" id="avatar" name="avatar" />
+                                <input type="hidden" id="redirect" name="redirect" />
                                 <input type="submit" id="submitButton" value="Log In" />
-
                             </div>
                             <div class="col-lg-2">
                                 <strong> OR </strong>
@@ -30,6 +30,7 @@
                                 <script>
                                     $(document).ready(function () {
                                         $("#loginButton").click(function() {
+                                            $("#redirect").val(window.location.href);
                                             FB.getLoginStatus(function(response) {
                                                 if (response.status === 'connected') {
                                                 FB.api('/me', { locale: 'en_US', fields: 'id, name, email, picture' }, function(response) {

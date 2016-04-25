@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -31,7 +32,7 @@ public class User implements java.io.Serializable {
 
     private int id;
     private String userEmail;
-    private String passWord;
+    private byte[] passWord;
     private boolean fbLink;
     private String avatar;
     private List<TruckReview> truckReviews = new ArrayList<>();
@@ -45,6 +46,7 @@ public class User implements java.io.Serializable {
      * Empty constructor required by Hibernate
      */
     public User() {
+        this.id = 0;
     }
 
     /**
@@ -89,7 +91,7 @@ public class User implements java.io.Serializable {
      *
      * @return this user's password, properly salted and hashed
      */
-    public String getPassWord() {
+    public byte[] getPassWord() {
         return this.passWord;
     }
 
@@ -100,7 +102,7 @@ public class User implements java.io.Serializable {
      *
      * @param passWord this user's password, properly salted and hashed
      */
-    public void setPassWord(String passWord) {
+    public void setPassWord(byte[] passWord) {
         this.passWord = passWord;
     }
 
@@ -241,13 +243,13 @@ public class User implements java.io.Serializable {
     
     public void changePassword(String newPassword) {
         byte[] newSalt = generateSalt();
-        String epass = encryptPassword(newPassword, newSalt);
+        byte[] epass = encryptPassword(newPassword, newSalt);
         this.setSalt(newSalt);
         this.setPassWord(epass);
         this.save();
     }
     
-    private static String encryptPassword(String password, byte[] salt) {
+    private static byte[] encryptPassword(String password, byte[] salt) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] pwba = password.getBytes(StandardCharsets.UTF_8);
@@ -256,7 +258,7 @@ public class User implements java.io.Serializable {
                 saltedPassword[i] = (i < 16 ? salt[i] : pwba[i-16]);
             
             byte[] hash = digest.digest(saltedPassword);
-            return new String(hash).replace("'", "\\'");
+            return hash;
         } catch (NoSuchAlgorithmException ex) {
             //error handling
             return null;
@@ -266,24 +268,11 @@ public class User implements java.io.Serializable {
     public static User validateUser(String email, String password) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
-        Query q1 = session.createQuery("select u.salt from User u where u.userEmail='" + email + "'");
-        byte[] salt;
-        try {
-            salt = (byte[]) q1.uniqueResult();
-            password = encryptPassword(password, salt);
-        } catch (ClassCastException cce) {
-
-        }
-        try {
-            Query q = session.createQuery("from User u where u.userEmail='" + email + "' and u.passWord='" + password + "'");
-            User retval = (User) q.uniqueResult();
-            session.close();
-            return retval;
-        } catch (ClassCastException cce) {
-            // handle this
-            session.close();
-            return null;
-        }
+        Query q = session.createQuery("from User where userEmail = :email").setString("email", email);
+        User user = (User) q.uniqueResult();
+        session.close();
+        byte[] encrypted = encryptPassword(password, user.salt);
+        return Arrays.equals(user.passWord, encrypted) ? user : null;
     }
     
     public static User validateUserFacebook(String email, String fbID) {
@@ -311,34 +300,6 @@ public class User implements java.io.Serializable {
         this.setAvatar(avatar);
         this.linkUserFacebook(fbID);
     }
-    /*
-    private static String validateFacebookToken(String fbToken) {
-        try {
-            URL tokenExtender = new URL(TOKEN_EXTENDER_URL);
-            HttpsURLConnection con = (HttpsURLConnection) tokenExtender.openConnection();
-            String newToken = null;
-            con.setRequestMethod("GET");
-            con.setDoOutput(true);
-            String params = "grant_type=fb_exchange_token&client_id=" + APP_ID + "&client_secret=" + APP_SECRET + "&fb_exchange_token=" + fbToken;
-            try (OutputStream stream = con.getOutputStream()) {
-                stream.write(params.getBytes());
-                stream.flush();
-            }
-            int responseCode = con.getResponseCode();
-            if (responseCode == 200) {
-                byte[] responseToken = new byte[TOKEN_LENGTH];
-                try (InputStream in = con.getInputStream()) {
-                    in.read(responseToken);
-                }
-                newToken = new String(responseToken);
-            }
-            con.disconnect();
-            return newToken;
-        } catch (IOException ex) {
-            
-        }
-        return null;
-    } */
     
     public static User createUser(String email, String password, boolean facebook, String displayName, String fbAvatarURL, String fbID) {
         User user = new User();
@@ -384,6 +345,13 @@ public class User implements java.io.Serializable {
         session.close();
     }
     
+    public void delete() {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        session.delete(this);
+        session.getTransaction().commit();
+        session.close();
+    }
 }
 
 

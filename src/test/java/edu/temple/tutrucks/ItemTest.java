@@ -5,12 +5,12 @@
  */
 package edu.temple.tutrucks;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import org.junit.*;
 import static org.junit.Assert.*;
 import java.util.Set;
-import java.util.TreeSet;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import static org.mockito.Mockito.*;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
  *
  * @author michn_000
  */
-public class ItemTest {
+public class ItemTest extends IntegrationTestUsingResources { // needs to be test suited with the others
     private ItemReview review;
     private Tag tag;
     private Item item;
@@ -61,7 +61,9 @@ public class ItemTest {
     
     @Test
     public void testAddReviewFailed() {
-        when(review.getReviewed()).thenReturn(new Item());  
+        Item i = new Item();
+        i.setId(1);
+        when(review.getReviewed()).thenReturn(i);  
         item.addReview(review);
         System.out.println("Verifying review called getReviewed");
         verify(review).getReviewed();
@@ -127,18 +129,19 @@ public class ItemTest {
             assertEquals(testResults.get(i).getSearchName(), results.get(i).getSearchName());
         }
     }
-    /*
+    
     @Test
-    public void testLoadReviews() {
-        Item i;
-        List<ItemReview> reviews;
-        i = Item.searchItems("chicken").get(0);
-        reviews = i.loadReviews();
-        assertTrue(reviews.size() > 0);
-        for (ItemReview r : reviews) {
-            if (r != null) System.out.println(r.reviewText);
-            else System.out.println("null entry");
-        }
-    } */
+    public void testLoadReviews() { 
+        Item realItem = Item.getItemByID(1);
+        ItemReview realFakeReview = new ItemReview();
+        realFakeReview.setItem(realItem);
+        realFakeReview.setUser(IntegrationTestResources.getTestUser());
+        realFakeReview.setReviewDate(new Date());
+        realFakeReview.setReviewStars(5);
+        realFakeReview.setReviewText("fake review");
+        realFakeReview.save();
+        assertTrue(realItem.loadReviews().contains(realFakeReview));
+        realFakeReview.delete();
+    }
 }
 

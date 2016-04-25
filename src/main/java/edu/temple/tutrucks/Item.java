@@ -3,6 +3,7 @@ package edu.temple.tutrucks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import org.hibernate.Query;
@@ -123,7 +124,7 @@ public class Item implements java.io.Serializable, Reviewable, Taggable, Searcha
      * @return the set of tags associated with the item
      */
     @Override
-    public Set getTags() {
+    public Set<Tag> getTags() {
         return this.tags;
     }
     /**
@@ -133,8 +134,8 @@ public class Item implements java.io.Serializable, Reviewable, Taggable, Searcha
     @Override
     public void addTags(Tag... t) {
         for (Tag x : t) {
-            if (!x.getItems().contains(this)) x.addEntity(this);
             tags.add(x);
+            if (!x.getItems().contains(this)) x.addEntity(this);
         }
     }
     /**
@@ -207,6 +208,37 @@ public class Item implements java.io.Serializable, Reviewable, Taggable, Searcha
         session.close();
         for (Object o : l) this.addTags((Tag)o);
         return this.tags;
+    }
+    
+    public static Item getItemByID(int id) {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        Query q = session.createQuery(
+                "from Item where id='" + id + "'"
+        );
+        Item retval = (Item) q.uniqueResult();
+        session.close();
+        return retval;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o instanceof Item) {
+            Item i = (Item) o;
+            return this.id == i.id;
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 53 * hash + this.id;
+        hash = 53 * hash + Objects.hashCode(this.itemName);
+        hash = 53 * hash + (int) (Double.doubleToLongBits(this.price) ^ (Double.doubleToLongBits(this.price) >>> 32));
+        return hash;
     }
 
 }

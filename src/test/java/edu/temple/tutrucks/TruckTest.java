@@ -114,11 +114,25 @@ public class TruckTest {
         } 
     }
     
+    @Test
+    public void testGetScore() {
+        assertEquals(0, truck.getScore());
+        TruckReview r1 = new TruckReview();
+        TruckReview r2 = new TruckReview();
+        r1.setReviewStars(10);
+        r2.setReviewStars(0);
+        r1.setTruck(truck);
+        r2.setTruck(truck);
+        truck.addReview(r1);
+        truck.addReview(r2);
+        assertEquals(5, truck.getScore());
+    }
+    
     
     //INTEGRATION TESTING
     
     @Test
-    public synchronized void testSearchTrucks() {
+    public void testSearchTrucks() {
         String searchTerms = "c";
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
@@ -148,17 +162,35 @@ public class TruckTest {
     
     @Test
     public void testAddTagIntegration() {
-        
+        truck.addTags(tag);
+        tag.setTagName("test tag");
+        tag.save();
+        assertTrue(truck.loadTags().contains(tag));
+        tag.delete();
     }
     
     @Test
     public void testAddMultipleTagsIntegration() {
-        
+        Tag tag2 = mock(Tag.class);
+        tag.setTagName("test tag");
+        tag2.setTagName("test tag 2");
+        truck.addTags(tag, tag2);
+        tag.save();
+        tag2.save();
+        assertTrue(truck.loadTags().contains(tag));
+        assertTrue(truck.loadTags().contains(tag2));
+        tag.delete();
+        tag2.delete();
     }
     
     @Test
     public void testAddReviewFailIntegration() {
-        
+        Truck t2 = new Truck();
+        t2.setId(-1);
+        TruckReview tr = new TruckReview();
+        tr.setTruck(t2);
+        truck.addReview(tr);
+        assertTrue(truck.getTruckReviews().isEmpty());
     }
     
     @Test
@@ -169,11 +201,17 @@ public class TruckTest {
         reviews = t.loadReviews();
         assertTrue(reviews.size() > 0);
         for (TruckReview r : reviews) {
-            if (r != null) System.out.println(r.reviewText);
+            if (r != null) System.out.println(r.getReviewText());
             else System.out.println("null entry");
         }
     }
     
-    
+    @Test
+    public void testLoadTruckByName() {
+        int truckID = 2;
+        Truck currentTruck = Truck.getTruckByID(truckID);
+        Truck currentTruck2 = Truck.getTruckByName(currentTruck.getSearchName());
+        assertEquals(currentTruck, currentTruck2);
+    }
 }
 

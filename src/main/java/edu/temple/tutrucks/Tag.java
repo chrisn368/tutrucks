@@ -30,6 +30,8 @@ public class Tag implements java.io.Serializable, java.lang.Comparable, Searchab
       * Required empty constructor. 
       */
     public Tag() {
+        this.items = new HashSet<>();
+        this.trucks = new HashSet<>();
     }
     /**
      * Constructor that builds a tag object with just its name. Required by Hibernate.
@@ -37,6 +39,8 @@ public class Tag implements java.io.Serializable, java.lang.Comparable, Searchab
      */
     public Tag(String tagName) {
        this.tagName = tagName;
+       this.items = new HashSet<>();
+       this.trucks = new HashSet<>();
     }
     /**
      * Returns the ID of this tag object. Required by Hibernate.
@@ -78,20 +82,21 @@ public class Tag implements java.io.Serializable, java.lang.Comparable, Searchab
      * @param items the set of food items associated with this tag
      */
     public void setItems(Set<Item> items) {
-        this.items = items;
+        this.items.clear();
+        this.items.addAll(items);
     }
     /**
      * Attaches a taggable entity to this tag. 
      * @param t the taggable entity to be associated with this tag
      */
     public void addEntity(Truck t) {
+        trucks.add(t);
         if (!t.getTags().contains(this)) t.addTags(this);
-        trucks.add((Truck)t);
     }
     
     public void addEntity(Item i) {
+        items.add(i);
         if (!i.getTags().contains(this)) i.addTags(this);
-        items.add((Item)i);
     }
     /**
      * Returns the set of trucks associated with this tag. Required by Hibernate.
@@ -105,7 +110,8 @@ public class Tag implements java.io.Serializable, java.lang.Comparable, Searchab
      * @param trucks the set of trucks associated with this tag
      */
     public void setTrucks(Set<Truck> trucks) {
-        this.trucks = trucks;
+        this.trucks.clear();
+        this.trucks.addAll(trucks);
     }
     /**
      * Returns all entities associated with this tag.
@@ -204,6 +210,14 @@ public class Tag implements java.io.Serializable, java.lang.Comparable, Searchab
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
         session.saveOrUpdate(this);
+        session.getTransaction().commit();
+        session.close();
+    }
+    
+    public void delete() {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        session.delete(this);
         session.getTransaction().commit();
         session.close();
     }

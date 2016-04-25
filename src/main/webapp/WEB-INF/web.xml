@@ -41,4 +41,12 @@
         <servlet-name>AutoComplete</servlet-name>
         <url-pattern>/autocomplete</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>AddTag</servlet-name>
+        <servlet-class>edu.temple.controller.AddTagServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AddTag</servlet-name>
+        <url-pattern>/addtags</url-pattern>
+    </servlet-mapping>
 </web-app>

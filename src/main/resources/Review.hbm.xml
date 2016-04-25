@@ -4,7 +4,7 @@
     <class name="edu.temple.tutrucks.Review" abstract="true">
         <id name="id" type="int">
             <column name="id" />
-            <generator class="hilo" />
+            <!--<generator class="hilo" />-->
         </id>
         <property name="reviewStars" type="int">
             <column name="review_stars" not-null="true" />

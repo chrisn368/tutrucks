@@ -35,7 +35,7 @@
             data: {criteria:recipient, start: 0, end: 20},
             success: function (data){
                 alert(data);
-            }
+            },
             error: function (jqXHR, status, error){
                 
             }
