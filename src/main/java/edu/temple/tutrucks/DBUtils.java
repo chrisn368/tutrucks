@@ -19,10 +19,16 @@ import java.util.HashSet;
  * @author nickdellosa
  */
 public class DBUtils {
-    
-    public static List<Searchable> searchAll(String terms, String tags) {
+    /**
+     * Searches through all Searchable objects in the database. Currently, {@link Searchable} objects include trucks, items, and tags.
+     * @param criteria the String to match
+     * @param tags the tags that should be associated with returned {@link Searchable}s (will only return trucks and items with the specified tags and not the tag objects themselves)
+     * @return a list of {@link Searchable}s matching the specified terms and tags
+     */
+    public static List<Searchable> searchAll(String criteria, String tags) {
         List<Searchable> results = new ArrayList<>();
-        if (terms != null) {
+        if (criteria != null) {
+            String terms = criteria.toLowerCase();
             if (terms.contains(":")) {
                 String s[] = terms.split(":");
                 String searchType = s[0];
@@ -39,15 +45,16 @@ public class DBUtils {
                         break;
                     default:
                         results.addAll(DBUtils.searchAll(search, tags));
+                        break;
                 }
             } else {
                 Session session = HibernateUtil.getSessionFactory().openSession();
                 session.beginTransaction();
                 Query q = session.createQuery(
                         "from edu.temple.tutrucks.Searchable s where ("
-                        + "s.id in (select tr.id from Truck tr where tr.truckName like '%" + terms + "%') or "
-                        + "s.id in (select it.id from Item it where it.itemName like '%" + terms + "%') or "
-                        + "s.id in (select ta.id from Tag ta where ta.tagName like '%" + terms + "%'))"
+                        + "s.id in (select tr.id from Truck tr where lower(tr.truckName) like '%" + terms + "%') or "
+                        + "s.id in (select it.id from Item it where lower(it.itemName) like '%" + terms + "%') or "
+                        + "s.id in (select ta.id from Tag ta where lower(ta.tagName) like '%" + terms + "%'))"
                 );
                 List l = q.list();
                 session.close();
@@ -70,7 +77,10 @@ public class DBUtils {
         }
         return results;
     }
-    
+    /**
+     * Retrives a list of all trucks currently open for business.
+     * @return a list of all trucks currently open for business
+     */
     public static List<Truck> openTrucks() {
         Calendar c = Calendar.getInstance();
         int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);

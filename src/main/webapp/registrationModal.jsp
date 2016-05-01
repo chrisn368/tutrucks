@@ -9,18 +9,18 @@
             <div class="modal-body">
                 <p>
                     <div class="row">
-                        <form id="registrationForm" class="registration login" action="/createUser" method="post">
+                        <form id="registrationForm" class="registration login" action="createUser" method="post">
                             <div class="col-lg-1">
                                 &nbsp;
                             </div>
                             <div class="col-lg-4" style="text-align: center;">
-                                <input type="email" id="email" pattern="(.+)@(.+)\.((com)|(edu)|(org)|(gov))" name="email" placeholder="Email" /><br />
-                                <input type="password" id="password" pattern=".{6,16}" name="password" placeholder="Password (6-16 characters)" /><br />
-                                <input type="hidden" id="facebook_id" name="facebook_id" />
-                                <input type="hidden" id="display" name="display" />
-                                <input type="hidden" id="avatar" name="avatar" />
-                                <input type="hidden" id="currentpage" name="currentpage" />
-                                <input type="submit" value="Create Account" />
+                                <input type="email" id="email_r" pattern="(.+)@(.+)\.((com)|(edu)|(org)|(gov))" name="email" placeholder="Email" /><br />
+                                <input type="password" id="password_r" pattern=".{6,16}" name="password" placeholder="Password (6-16 characters)" /><br />
+                                <input type="hidden" id="facebook_id_r" name="facebook_id" />
+                                <input type="hidden" id="display_r" name="display" />
+                                <input type="hidden" id="avatar_r" name="avatar" />
+                                <input type="hidden" id="currentpage_r" name="currentpage" />
+                                <input id="registrationSubmit" type="submit" value="Create Account" />
                             </div>
                             <div class="col-lg-2">
                                 <strong> OR </strong>
@@ -33,9 +33,10 @@
                                             FB.getLoginStatus(function(response) {
                                                 if (response.status === 'connected') {
                                                     $('#modal').modal('toggle');
-                                                    alert("You are already logged in")
-                                                //var uid = response.authResponse.userID;
-                                                //var accessToken = response.authResponse.accessToken;
+                                                    
+                                                    var uid = response.authResponse.userID;
+                                                    var email=response.authResponse.email;
+                                                    
                                               } else if (response.status === 'not_authorized') {
                                                 // the user is logged in to Facebook, 
                                                 // but has not authenticated your app
@@ -43,11 +44,11 @@
                                                 FB.login(function(response) {
                                                     if (response.authResponse) {
                                                      FB.api('/me', { locale: 'en_US', fields: 'id, name, email, picture' }, function(response) {
-                                                       document.getElementById("email").value = response.email;
-                                                       document.getElementById("facebook_id").value = response.id;
-                                                       document.getElementById("display").value=response.name;
-                                                       document.getElementById("avatar").value=response.picture.data.url;
-                                                       document.getElementById("currentpage").value=window.location.href;
+                                                       document.getElementById("email_r").value = response.email;
+                                                       document.getElementById("facebook_id_r").value = response.id;
+                                                       document.getElementById("display_r").value=response.name;
+                                                       document.getElementById("avatar_r").value=response.picture.data.url;
+                                                       document.getElementById("currentpage_r").value=window.location.href;
                                                      });
                                                     } else {
                                                      console.log('User cancelled login or did not fully authorize.');

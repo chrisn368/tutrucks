@@ -5,10 +5,7 @@
  */
 package edu.temple.tutrucks;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.hibernate.Query;
-import org.hibernate.Session;
+import java.util.Set;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -22,15 +19,22 @@ import static org.junit.Assert.*;
  */
 public class TagTest {
     
+    private static Tag realTag;
+    private static final String TAGNAME = "vegan";
+    
     public TagTest() {
     }
     
     @BeforeClass
     public static void setUpClass() {
+        realTag = new Tag();
+        realTag.setTagName(TAGNAME);
+        realTag.save();
     }
     
     @AfterClass
     public static void tearDownClass() {
+        realTag.delete();
     }
     
     @Before
@@ -48,20 +52,50 @@ public class TagTest {
     // public void hello() {}
     
     @Test
-    public void testSearchTags() {
-        String terms = "halal";
-        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
-        session.beginTransaction();
-        Query q = session.createQuery(
-                "from Tag where tagName like '%" + terms + "%'"
-        );
-        List l = q.list();
-        session.close();
-        ArrayList<Tag> testResults = new ArrayList<>(l.size());
-        for (Searchable s : Searchable.SearchOrganizer.organize(l, terms)) testResults.add((Tag)s);
-        List<Tag> results = Tag.searchTags(terms);
-        for (int i=0; i < results.size(); i++) {
-            assertEquals(testResults.get(i).getSearchName(), results.get(i).getSearchName());
-        }
+    public void testAddEntityTruck() {
+        Tag fakeTag = new Tag();
+        Truck truck = new Truck();
+        fakeTag.addEntity(truck);
+        assertTrue(fakeTag.getTrucks().contains(truck));
+        assertTrue(truck.getTags().contains(fakeTag));
     }
+    
+    @Test
+    public void testAddEntityItem() {
+        Tag fakeTag = new Tag();
+        Item item = new Item();
+        fakeTag.addEntity(item);
+        assertTrue(fakeTag.getItems().contains(item));
+        assertTrue(item.getTags().contains(fakeTag));
+    }
+    
+    @Test
+    public void testGetAllTaggedEntitiesAndNumEntities() {
+        Tag fakeTag = new Tag();
+        Truck truck = new Truck();
+        Item item = new Item();
+        fakeTag.addEntity(truck);
+        fakeTag.addEntity(item);
+        Set<Taggable> entities = fakeTag.getAllTaggedEntities();
+        assertEquals(entities.size(), fakeTag.numEntities());
+        assertTrue(entities.contains(truck));
+        assertTrue(entities.contains(item));
+    }
+    
+    @Test
+    public void testSearchTags() {
+        assertTrue(Tag.searchTags(TAGNAME).contains(realTag));
+    }
+    
+    @Test
+    public void testRetrieveTagDoNotCreate() {
+        assertEquals(realTag, Tag.retrieveTag(TAGNAME, false));
+    }
+    
+    @Test
+    public void testRetrieveTagCreate() {
+        Tag t = Tag.retrieveTag("newtag", true);
+        assertEquals(t, Tag.retrieveTag("newtag", false));
+        t.delete();
+    }   
 }

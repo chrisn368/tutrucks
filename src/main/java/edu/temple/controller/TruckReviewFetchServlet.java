@@ -8,7 +8,6 @@ package edu.temple.controller;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import edu.temple.tutrucks.Review;
 import edu.temple.tutrucks.Truck;
 import edu.temple.tutrucks.TruckReview;
 import java.util.List;
@@ -17,11 +16,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- *
- * @author nickdellosa
+ * @author Nick Dell'Osa
+ * @version %PROJECT_VERSION%
  */
 public class TruckReviewFetchServlet extends HttpServlet {
    
+    /**
+     * Processes a get request for this servlet. This servlet fetches a specified truck's reviews and writes them to output as JSON.
+     * This servlet takes 3 parameters: criteria, the ID of the truck to retrieve reviews for, start, the number of the first review to write to output, and end, the number of the last review to write to output.
+     * The output of this request is a JSON array which contains JSON objects. The objects have 4 attributes: text, a String containing the text of the review, stars, the average total score of the truck, date, a String containing the date this review was written, and user, an object containing information about the writer of this review.
+     * The user object contains 3 parameters itself: name, the display name of this user, email, the email of this user, and avatar, a link to this user's avatar.
+     * @param req the HttpServletRequest object for this servlet
+     * @param resp the HttpServletResponse object for this servlet
+     */
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
@@ -32,27 +39,25 @@ public class TruckReviewFetchServlet extends HttpServlet {
             List<TruckReview> reviews = t.loadReviews().subList(minReview, maxReview);
             JsonArray array = new JsonArray();
             for (TruckReview rev : reviews) {
-                JsonObject revObj = new JsonObject();
-                revObj.addProperty("text", rev.getReviewText());
-                revObj.addProperty("stars", rev.getReviewStars());
-                revObj.addProperty("date", rev.getReviewDate().toString());
-                JsonObject userInfo = new JsonObject();
-                userInfo.addProperty("name", rev.getUser().getDisplayName());
-                userInfo.addProperty("email", rev.getUser().getUserEmail());
-                userInfo.addProperty("avatar", rev.getUser().getAvatar());
-                revObj.add("userinfo", userInfo);
-                array.add(revObj);
+                if (rev != null) {
+                    JsonObject revObj = new JsonObject();
+                    revObj.addProperty("text", rev.getReviewText());
+                    revObj.addProperty("stars", rev.getReviewStars());
+                    revObj.addProperty("date", rev.getReviewDate().toString());
+                    JsonObject userInfo = new JsonObject();
+                    userInfo.addProperty("name", rev.getUser().getDisplayName());
+                    userInfo.addProperty("email", rev.getUser().getUserEmail());
+                    userInfo.addProperty("avatar", rev.getUser().getAvatar());
+                    revObj.add("userinfo", userInfo);
+                    array.add(revObj);
+                }
             }
             Gson gson = new Gson();
             String s = gson.toJson(array);
             resp.getWriter().print(s);
         } catch (Exception e) {
-            
+            System.err.println(e.getMessage());
+            e.printStackTrace();
         }
-    }
-    
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
-        
     }
 }

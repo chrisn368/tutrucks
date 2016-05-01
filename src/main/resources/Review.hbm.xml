@@ -15,7 +15,7 @@
         <property name="reviewDate" type="date">
             <column name="review_date" length="10" not-null="true" />
         </property>
-        <many-to-one name="user" class="edu.temple.tutrucks.User" fetch="select">
+        <many-to-one name="user" class="edu.temple.tutrucks.User" fetch="select" lazy="false">
             <column name="user_id" />
         </many-to-one>
         <union-subclass name="edu.temple.tutrucks.TruckReview" table="truck_review">

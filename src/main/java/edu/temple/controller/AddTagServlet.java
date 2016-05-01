@@ -16,11 +16,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- *
- * @author nickdellosa
+ * @author Nick Dell'Osa
+ * @version %PROJECT_VERSION%
  */
 public class AddTagServlet extends HttpServlet {
 
+    /**
+     * Processes this servlets post request. This servlet adds a tag to the specified {@link Taggable} entity.
+     * This servlet takes 4 parameters: user, the user that added the tag, names, the name(s) of the tag(s) to be added, id, the id of the entity to add this tag to, and type, the type of the {@link Taggable} entity
+     * @param req the HttpServletRequest object for this servlet
+     * @param resp the HttpServletResponse object for this servlet
+     */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
         try {

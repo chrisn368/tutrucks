@@ -22,7 +22,7 @@ import org.hibernate.Session;
  * @author Nick Dell'Osa
  * @version %PROJECT_VERSION%
  */
-public class User implements java.io.Serializable {
+public class User implements java.io.Serializable, Visualizable {
 
     private static final Random SALTER = new java.security.SecureRandom();
     private static final String APP_ID = "1272882256060359";
@@ -40,7 +40,8 @@ public class User implements java.io.Serializable {
     private String displayName;
     private Permissions permissions;
     private byte[] salt;
-    private String facebookID;
+    private byte[] facebookID;
+    private byte[] facebookSalt;
 
     /**
      * Empty constructor required by Hibernate
@@ -131,6 +132,7 @@ public class User implements java.io.Serializable {
      * Returns a link to this user's avatar. Required by Hibernate
      * @return a link to this user's avatar
      */
+    @Override
     public String getAvatar() {
         return this.avatar;
     }
@@ -138,6 +140,7 @@ public class User implements java.io.Serializable {
      * Sets the link to this user's avatar. Required by Hibernate
      * @param avatar the link to this user's avatar
      */
+    @Override
     public void setAvatar(String avatar) {
         this.avatar = avatar;
     }
@@ -159,15 +162,17 @@ public class User implements java.io.Serializable {
      * Adds a review to this user's list of reviews. The user for the review must already be the user whose list the review is being added to. Required by Hibernate
      * @param r the review to add to this user's list of reviews
      */
-    public void addReview(Review r) {
-        if (!r.getUser().equals(this)) {
-            //error handling
-            return;
+    public void addReview(Review r) throws IllegalArgumentException {
+        if (r.getUser() == null) {
+            r.setUser(this);
+        } else if (!r.getUser().equals(this)) {
+            throw new IllegalArgumentException("A review's user parameter must be either null or equal to the User object you are adding the review to.");
         }
-        if (r.getClass() == TruckReview.class)
-            truckReviews.add((TruckReview)r);
-        else
-            itemReviews.add((ItemReview)r);
+        if (r.getClass() == TruckReview.class) {
+            truckReviews.add((TruckReview) r);
+        } else {
+            itemReviews.add((ItemReview) r);
+        }
     }
     /**
      * Sets the list of reviews for trucks written by this user. Required by Hibernate
@@ -213,26 +218,47 @@ public class User implements java.io.Serializable {
     public void setPermissions(Permissions permissions) {
         this.permissions = permissions;
     }
-    
-    public void changeDisplayName(String newDisplayName) {
-        this.setDisplayName(newDisplayName);
-        this.save();
-    }
-    
+    /**
+     * Returns the salt of this user.
+     * @return this user's salt
+     */
     public byte[] getSalt() {
         return salt;
     }
-
+    /**
+     * Sets the salt for this user.
+     * @param salt the new salt for this user
+     */
     public void setSalt(byte[] salt) {
         this.salt = salt;
     }
-    
-    public String getFacebookID() {
+    /**
+     * Returns this user's Facebook ID.
+     * @return this user's Facebook ID
+     */
+    public byte[] getFacebookID() {
         return facebookID;
     }
-    
-    public void setFacebookID(String fbID) {
+    /**
+     * Sets this user's Facebook ID.
+     * @param fbID this user's new Facebook ID
+     */
+    public void setFacebookID(byte[] fbID) {
         this.facebookID = fbID;
+    }
+    /**
+     * Returns the salt for this user's Facebook ID
+     * @return the salt for this user's Facebook ID
+     */
+    public byte[] getFacebookSalt() {
+        return facebookSalt;
+    }
+    /**
+     * Sets the salt for this user's Facebook ID
+     * @param facebookSalt the new salt for this user's Facebook ID
+     */
+    public void setFacebookSalt(byte[] facebookSalt) {
+        this.facebookSalt = facebookSalt;
     }
     
     private static byte[] generateSalt() {
@@ -240,13 +266,15 @@ public class User implements java.io.Serializable {
         SALTER.nextBytes(salt);
         return salt;
     }
-    
+    /**
+     * Changes this user's password and saves the change to the database.
+     * @param newPassword the new unencrypted password for this user
+     */
     public void changePassword(String newPassword) {
         byte[] newSalt = generateSalt();
         byte[] epass = encryptPassword(newPassword, newSalt);
         this.setSalt(newSalt);
         this.setPassWord(epass);
-        this.save();
     }
     
     private static byte[] encryptPassword(String password, byte[] salt) {
@@ -264,7 +292,12 @@ public class User implements java.io.Serializable {
             return null;
         }
     }
-
+    /**
+     * Validates the credentials submitted and returns the associated user object.
+     * @param email the email of the user
+     * @param password the unencrypted password of the user
+     * @return the associated user object if the credentials are correct; null otherwise
+     */
     public static User validateUser(String email, String password) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
@@ -274,33 +307,52 @@ public class User implements java.io.Serializable {
         byte[] encrypted = encryptPassword(password, user.salt);
         return Arrays.equals(user.passWord, encrypted) ? user : null;
     }
-    
+    /**
+     * Validates the credentials submitted and returns the associated user object.
+     * @param email the email of the user
+     * @param fbID the Facebook ID of the user
+     * @return the associated user object if the credentials are correct; null otherwise
+     */
     public static User validateUserFacebook(String email, String fbID) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
-        Query q = session.createQuery("from User u where u.userEmail='" + email + "' and u.fbID='" + fbID + "'");
-        try {
-            User retval = (User) q.uniqueResult();
-            session.close();
-            return retval;
-        } catch (ClassCastException cce) {
-            session.close();
-            return null;
-        }
+        Query q = session.createQuery("from User where userEmail = :email").setString("email", email);
+        User user = (User) q.uniqueResult();
+        session.close();
+        byte[] encrypted = encryptPassword(fbID, user.facebookSalt);
+        return Arrays.equals(user.facebookID, encrypted) ? user : null;
     }
-    
+    /**
+     * Links this user to their Facebook account.
+     * @param fbID the Facebook ID of this user
+     */
     public void linkUserFacebook(String fbID) {
         this.setFbLink(true);
-        this.setFacebookID(fbID);
+        this.setFacebookSalt(generateSalt());
+        this.setFacebookID(encryptPassword(fbID, this.facebookSalt));
         this.save();
     }
-    
+    /**
+     * Links this user to their Facebook account.
+     * @param fbID the Facebook ID of this user
+     * @param displayName the name of this user on Facebook
+     * @param avatar the link to this user's Facebook profile picture
+     */
     public void linkUserFacebook(String fbID, String displayName, String avatar) {
         this.setDisplayName(displayName);
         this.setAvatar(avatar);
         this.linkUserFacebook(fbID);
     }
-    
+    /**
+     * Creates a user with the specified credentials.
+     * @param email the new user's email
+     * @param password the new user's password
+     * @param facebook whether or not the new user is signing up via Facebook
+     * @param displayName the display name of the new user
+     * @param fbAvatarURL a link to the avatar of the new user
+     * @param fbID the Facebook ID of the new user
+     * @return the User object representing the newly created user
+     */
     public static User createUser(String email, String password, boolean facebook, String displayName, String fbAvatarURL, String fbID) {
         User user = new User();
         user.setUserEmail(email);
@@ -312,7 +364,9 @@ public class User implements java.io.Serializable {
         if (facebook) {
             user.setDisplayName(displayName);
             user.setAvatar(fbAvatarURL);
-            user.setFacebookID(fbID);
+            byte[] fbSalt = generateSalt();
+            user.setFacebookSalt(fbSalt);
+            user.setFacebookID(encryptPassword(fbID, fbSalt));
         } else {
             user.setDisplayName(email.substring(0, email.indexOf('@')));
         }
@@ -336,7 +390,9 @@ public class User implements java.io.Serializable {
         hash = 83 * hash + Objects.hashCode(this.permissions);
         return hash;
     }
-    
+    /**
+     * Saves this user object to the database and assigns it an ID value.
+     */
     public void save() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
@@ -344,7 +400,9 @@ public class User implements java.io.Serializable {
         session.getTransaction().commit();
         session.close();
     }
-    
+    /**
+     * Removes this user object from the database.
+     */
     public void delete() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();

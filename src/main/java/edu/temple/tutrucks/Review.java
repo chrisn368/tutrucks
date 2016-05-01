@@ -67,10 +67,9 @@ public abstract class Review<T extends Reviewable> {
      * Sets the number of stars in the review. Must be between 0 and 10. Required by Hibernate
      * @param reviewStars the number of stars given in the review. Must be between 0 and 10.
      */
-    public void setReviewStars(int reviewStars) {
+    public void setReviewStars(int reviewStars) throws IllegalArgumentException {
         if (reviewStars > 10 || reviewStars < 0) {
-            //error handling
-            return;
+            throw new IllegalArgumentException("Review rating must be between 0 and 10");
         }
         this.reviewStars = reviewStars;
     }
@@ -116,7 +115,9 @@ public abstract class Review<T extends Reviewable> {
     public void setId(Integer id) {
         this.id = id;
     }
-    
+    /**
+     * Saves this review object to the database and assigns it an ID value.
+     */
     public void save() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
@@ -132,7 +133,9 @@ public abstract class Review<T extends Reviewable> {
         session.close();
         this.getUser().save();
     }
-    
+    /**
+     * Removes this review object from the database.
+     */
     public void delete() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();

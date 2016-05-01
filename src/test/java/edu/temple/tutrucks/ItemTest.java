@@ -114,6 +114,30 @@ public class ItemTest extends IntegrationTestUsingResources { // needs to be tes
     }
     
     @Test
+    public void testAddTagIntegration() {
+        Item realItem = Item.getItemByID(1);
+        realItem.addTags(tag);
+        tag.setTagName("test tag");
+        tag.save();
+        assertTrue(realItem.loadTags().contains(tag));
+        tag.delete();
+    }
+    
+    @Test
+    public void testGetScore() {
+        assertEquals(0, item.getScore());
+        ItemReview ir1 = new ItemReview();
+        ItemReview ir2 = new ItemReview();
+        ir1.setReviewStars(10);
+        ir2.setReviewStars(0);
+        ir1.setItem(item);
+        ir2.setItem(item);
+        item.addReview(ir1);
+        item.addReview(ir2);
+        assertEquals(5, item.getScore());
+    }
+    
+    @Test
     public void testSearchItems() {
         String searchTerms = "cheesesteak";
         Session session = HibernateUtil.getSessionFactory().getCurrentSession();
@@ -131,7 +155,7 @@ public class ItemTest extends IntegrationTestUsingResources { // needs to be tes
     }
     
     @Test
-    public void testLoadReviews() { 
+    public void testreloadReviews() { 
         Item realItem = Item.getItemByID(1);
         ItemReview realFakeReview = new ItemReview();
         realFakeReview.setItem(realItem);
@@ -140,8 +164,17 @@ public class ItemTest extends IntegrationTestUsingResources { // needs to be tes
         realFakeReview.setReviewStars(5);
         realFakeReview.setReviewText("fake review");
         realFakeReview.save();
-        assertTrue(realItem.loadReviews().contains(realFakeReview));
+        assertTrue(realItem.reloadReviews().contains(realFakeReview));
         realFakeReview.delete();
+    }
+    
+    @Test
+    public void testEqualsIntegration() {
+        Item realItem = Item.getItemByID(1);
+        assertTrue(realItem.equals(Item.getItemByID(1)));
+        assertFalse(realItem.equals(Item.getItemByID(2)));
+        Object testObject = new Object();
+        assertFalse(realItem.equals(testObject));
     }
 }
 

@@ -9,16 +9,16 @@
             <div class="modal-body">
                 <p>
                     <div class="row">
-                        <form id="loginForm" class="login" action="/login" method="post">
+                        <form id="loginForm" class="login" action="login" method="post">
                             <div class="col-lg-1">
                                 &nbsp;
                             </div>
                             <div class="col-lg-4" style="text-align: center;">
-                                <input type="email" pattern="(.+)@(.+)\.((com)|(edu)|(org)|(gov))" name="email" placeholder="Email" required /><br />
+                                <input type="email" id="email_l" pattern="(.+)@(.+)\.((com)|(edu)|(org)|(gov))" name="email" placeholder="Email" required /><br />
                                 <input type="password" pattern=".{6,16}" name="password" placeholder="Password" /><br />
-                                <input type="hidden" id="facebook_id" name="fbID" />
-                                <input type="hidden" id="display" name="display" />
-                                <input type="hidden" id="avatar" name="avatar" />
+                                <input type="hidden" id="facebook_id_l" name="fbID" />
+                                <input type="hidden" id="display_l" name="display" />
+                                <input type="hidden" id="avatar_l" name="avatar" />
                                 <input type="hidden" id="redirect" name="redirect" />
                                 <input type="submit" id="submitButton" value="Log In" />
                             </div>
@@ -34,10 +34,10 @@
                                             FB.getLoginStatus(function(response) {
                                                 if (response.status === 'connected') {
                                                 FB.api('/me', { locale: 'en_US', fields: 'id, name, email, picture' }, function(response) {
-                                                       document.getElementById("email").value = response.email;
-                                                       document.getElementById("facebook_id").value = response.id;
-                                                       document.getElementById("display").value=response.name;
-                                                       document.getElementById("avatar").value=response.picture.data.url;
+                                                       document.getElementById("email_l").value = response.email;
+                                                       document.getElementById("facebook_id_l").value = response.id;
+                                                       document.getElementById("display_l").value=response.name;
+                                                       document.getElementById("avatar_l").value=response.picture.data.url;
                                                        ("#submitButton").click();
                                                 });
                                                 //var uid = response.authResponse.userID;
@@ -49,10 +49,10 @@
                                                 FB.login(function(response) {
                                                     if (response.authResponse) {
                                                      FB.api('/me', { locale: 'en_US', fields: 'id, name, email, picture' }, function(response) {
-                                                       document.getElementById("email").value = response.email;
-                                                       document.getElementById("facebook_id").value = response.id;
-                                                       document.getElementById("display").value=response.name;
-                                                       document.getElementById("avatar").value=response.picture.data.url;
+                                                       document.getElementById("email_l").value = response.email;
+                                                       document.getElementById("facebook_id_l").value = response.id;
+                                                       document.getElementById("display_l").value=response.name;
+                                                       document.getElementById("avatar_l").value=response.picture.data.url;
                                                      });
                                                     } else {
                                                      console.log('User cancelled login or did not fully authorize.');

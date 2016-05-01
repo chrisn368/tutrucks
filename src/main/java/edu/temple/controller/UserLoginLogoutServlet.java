@@ -13,11 +13,18 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
- *
- * @author nickdellosa
+ * @author Nick Dell'Osa
+ * @version %PROJECT_VERSION%
  */
 public class UserLoginLogoutServlet extends HttpServlet {
 
+    /**
+     * Processes the post request for this servlet. This servlet logs a user in or out, depending on the URL (/login for logins, /logout for logouts).
+     * This servlet takes 4 parameters: email, the email of the user logging in, password, the unencrypted password of the user logging in, fbID, the Facebook ID of the user logging in if the user is logging in via Facebook, and redirect, the page the user is logging in from.
+     * @param req the HttpServletRequest object for this servlet
+     * @param resp the HttpServletResponse object for this servlet
+     * @throws IOException 
+     */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession(true);
@@ -33,6 +40,7 @@ public class UserLoginLogoutServlet extends HttpServlet {
                 session.setAttribute("user", u);
             } else {
                 u = User.validateUser(email, password);
+                System.out.println("User: "+u);
                 session.setAttribute("user", u);
             }
         } else {
@@ -44,5 +52,6 @@ public class UserLoginLogoutServlet extends HttpServlet {
             }
         }
         resp.sendRedirect(redirect==null?"/":redirect);
+        return;
     }
 }

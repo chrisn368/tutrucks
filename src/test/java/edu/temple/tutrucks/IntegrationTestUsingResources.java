@@ -26,7 +26,7 @@ public class IntegrationTestUsingResources {
 
     public static class IntegrationTestResources {
 
-        private static final int TESTCOUNT = 2;
+        private static final int TESTCOUNT = 3;
         private static int currentCount = 0;
         private static boolean setup = false;
 

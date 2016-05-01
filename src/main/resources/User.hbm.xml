@@ -45,8 +45,11 @@
     <property name="salt" type="binary">
       <column name="salt"/>
     </property>
-    <property name="facebookID" type="string">
+    <property name="facebookID" type="binary">
       <column name="fb_id"/>
+    </property>
+    <property name="facebookSalt" type="binary">
+      <column name="fb_salt"/>
     </property>
   </class>
 </hibernate-mapping>

@@ -11,6 +11,7 @@ package edu.temple.tutrucks;
  * @author michn_000
  */
 
+import java.util.Arrays;
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -65,6 +66,16 @@ public class UserTest extends IntegrationTestUsingResources {
     }
     
     @Test
+    public void testValidateUserFacebook() {
+        String email = "testfacebook@test.com";
+        String fbID = "5555";
+        User facebookUser1 = User.createUser(email, "password", true, "Facebook User", null, fbID);
+        User facebookUser2 = User.validateUserFacebook(email, fbID);
+        assertEquals(facebookUser1, facebookUser2);
+        facebookUser1.delete();
+    }
+    
+    @Test
     public void testValidateUser() {
         User testUser = User.validateUser(IntegrationTestResources.EMAIL, IntegrationTestResources.PASSWORD);
         assertEquals(IntegrationTestResources.getTestUser(), testUser);
@@ -76,6 +87,17 @@ public class UserTest extends IntegrationTestUsingResources {
             User testUser = User.validateUser(IntegrationTestResources.EMAIL, IntegrationTestResources.PASSWORD);
             assertEquals(IntegrationTestResources.getTestUser(), testUser);
         }
+    }
+    
+    @Test
+    public void testChangePassword() {
+        User testUser = User.createUser("testaccount2@test.com", "password", false, null, null, null);
+        byte[] testUserPassword = testUser.getPassWord();
+        byte[] testUserSalt = testUser.getSalt();
+        testUser.changePassword("password2");
+        assertFalse(Arrays.equals(testUserSalt, testUser.getSalt()));
+        assertFalse(Arrays.equals(testUserPassword, testUser.getPassWord()));
+        testUser.delete();
     }
 }
 

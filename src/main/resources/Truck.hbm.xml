@@ -23,6 +23,9 @@
         <property name="closingTime" type="imm_time">
             <column name="closing_time" not-null="false"></column>
         </property>
+        <property name="avatar" type="string">
+            <column name="avatar"></column>
+        </property>
         <list name="truckReviews" table="truck_review" inverse="true" lazy="true" fetch="select">
             <key>
                 <column name="truck_id" />

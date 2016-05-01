@@ -54,6 +54,9 @@ public interface Searchable {
                 return 1;
         }
     }
-    
+    /**
+     * Returns the name of this Searchable.
+     * @return the name of this Searchable
+     */
     public String getSearchName();
 }

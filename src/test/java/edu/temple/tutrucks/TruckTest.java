@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
  *
  * @author michn_000
  */
-public class TruckTest {
+public class TruckTest extends IntegrationTestUsingResources {
     private TruckReview review;
     private Tag tag;
     private Truck truck;
@@ -162,10 +162,11 @@ public class TruckTest {
     
     @Test
     public void testAddTagIntegration() {
-        truck.addTags(tag);
+        Truck realTruck = Truck.getTruckByID(1);
+        realTruck.addTags(tag);
         tag.setTagName("test tag");
         tag.save();
-        assertTrue(truck.loadTags().contains(tag));
+        assertTrue(realTruck.loadTags().contains(tag));
         tag.delete();
     }
     
@@ -194,16 +195,17 @@ public class TruckTest {
     }
     
     @Test
-    public void testLoadReviews() {
-        Truck t;
-        List<TruckReview> reviews;
-        t = Truck.getTruckByID(9);
-        reviews = t.loadReviews();
-        assertTrue(reviews.size() > 0);
-        for (TruckReview r : reviews) {
-            if (r != null) System.out.println(r.getReviewText());
-            else System.out.println("null entry");
-        }
+    public void testreloadReviews() {
+        Truck realTruck = Truck.getTruckByID(1);
+        TruckReview realFakeReview = new TruckReview();
+        realFakeReview.setTruck(realTruck);
+        realFakeReview.setUser(IntegrationTestResources.getTestUser());
+        realFakeReview.setReviewDate(new Date());
+        realFakeReview.setReviewStars(5);
+        realFakeReview.setReviewText("fake review");
+        realFakeReview.save();
+        assertTrue(realTruck.loadReviews().contains(realFakeReview));
+        realFakeReview.delete();
     }
     
     @Test
@@ -212,6 +214,15 @@ public class TruckTest {
         Truck currentTruck = Truck.getTruckByID(truckID);
         Truck currentTruck2 = Truck.getTruckByName(currentTruck.getSearchName());
         assertEquals(currentTruck, currentTruck2);
+    }
+    
+    @Test
+    public void testEqualsIntegration() {
+        Truck realTruck = Truck.getTruckByID(1);
+        assertTrue(realTruck.equals(Truck.getTruckByID(1)));
+        assertFalse(realTruck.equals(Truck.getTruckByID(2)));
+        Object testObject = new Object();
+        assertFalse(realTruck.equals(testObject));
     }
 }
 

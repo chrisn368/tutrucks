@@ -32,6 +32,18 @@
     .click{
         cursor: pointer;
     }
+    
+    .mapButton, .mapButton:active, .mapButton:focus{
+        color: white;
+        background-color: #A41E35;
+        border-color: white;
+        border: 3px solid white;
+    }
+    .mapButton:hover {
+        color: #A41E35;
+        background-color: white;
+        border: 3px solid white;
+    }
 </style>
 
 <%
@@ -40,6 +52,8 @@
     String truckName = truck.getTruckName();
     int truckID = truck.getId();
     List<Menu> menus = truck.getMenus();
+    
+    out.println("<script>var truck = {lat: " + truck.getLatitude() + ", lng: " + truck.getLongitude() + "};</script>");
     
 %>
 
@@ -90,12 +104,28 @@
                                 out.print("<img src='images/Star_Half.png' width='12' height='24'>");
                             }
                     %>
-                    </h1>
+            </h1><br>
+            <div id="shareButtonDiv">
+               
+                <img id="shareButton" src="images/fbshare.png" width="180px" height="40px"/>
+                
+            
+            </div>
         </div>
     </div>
 
-    <div class="row">
-        <!--map business -->
+    <div class="container" style="padding-bottom: 10px;">
+        <div class="row-fluid">
+            <div class="col-md-3">
+                <button type="button" id="more" class="btn btn-primary mapButton" data-toggle="collapse" data-target="#collapseMap">
+                    <strong><span class="glyphicon glyphicon-chevron-up"></span> Hide Map</strong>
+                </button>
+                <button type="button" class="btn btn-primary mapButton" onclick="getDirections();"><strong>Get Directions</strong></button>
+            </div>
+        </div>
+    </div>
+    <div class="row-fluid collapse in" id="collapseMap">
+        <div class="collapse in" id="map" style="height:300px; margin-bottom: 15px;"></div>
     </div>
 
     <!--copied from category.jsp-->
@@ -211,5 +241,32 @@
         });
     });
     </script>
+    
+    <script>
+            
+             $(document).on("facebook:ready", function() {
+                FB.getLoginStatus(function(response) {
+                    if (!(response.status==='connected'))
+                        document.getElementById("shareButtonDiv").innerHTML="&nbsp;";
+                });
+                $("#shareButton").click(function() {
+                    FB.getLoginStatus(function(response) {
+                        if (response.status === 'connected') {
+                        FB.ui({
+                            method: 'share',
+                            href: window.location.href
+                        }, function(response){});
+                        //var uid = response.authResponse.userID;
+                        //var accessToken = response.authResponse.accessToken;
+                      } else if (response.status === 'not_authorized') {
+                        // the user is logged in to Facebook, 
+                        // but has not authenticated your app
+                      } else {
+                        };
+                      });
+                    });
+                });
+            </script>
 <%@ include file="footer.html"%>
-
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeqH8j_vGz84by2ewV7qGyeolyNx8Xb68&callback=initMap"></script>
+<script src="truckMapJs.js"></script>

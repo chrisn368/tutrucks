@@ -18,7 +18,7 @@ import org.hibernate.Session;
  * @author Nick Dell'Osa
  * @version %PROJECT_VERSION%
  */
-public class Truck implements java.io.Serializable, Reviewable, Taggable, Searchable {
+public class Truck implements java.io.Serializable, Reviewable, Taggable, Searchable, Visualizable {
 
      private int id;
      private String truckName;
@@ -26,6 +26,7 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
      private double longitude;
      private Time openingTime;
      private Time closingTime;
+     private String avatar;
      private List<TruckReview> truckReviews = new ArrayList<>();
      private List<Menu> menus = new ArrayList<>();
      private Set<Tag> tags = new TreeSet();
@@ -194,15 +195,33 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
         return this.truckName;
     }
     
+    @Override
+    public String getAvatar() {
+        return this.avatar;
+    }
+
+    @Override
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+    /**
+     * Retrieves a list of all trucks in the database.
+     * @return a list of all trucks in the database
+     */
     public static List<Truck> getAllTrucks() {
         return searchTrucks("");
     }
-    
-    public static List<Truck> searchTrucks(String terms) {
+    /**
+     * Retrieves a list of trucks that match the specified terms.
+     * @param criteria the String to match
+     * @return a list of trucks that match the specified terms
+     */
+    public static List<Truck> searchTrucks(String criteria) {
+        String terms = criteria.toLowerCase();
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
         Query q = session.createQuery(
-                "from Truck" + (terms.isEmpty() ? "" : " where truckName like '%" + terms + "%'")
+                "from Truck" + (terms.isEmpty() ? "" : " where lower(truckName) like '%" + terms + "%'")
         );
         List l = q.list();
         session.close();
@@ -210,7 +229,11 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
         for (Searchable s : Searchable.SearchOrganizer.organize(l, terms)) results.add((Truck)s);
         return results;
     }
-    
+    /**
+     * Retrieves the Truck with the specified name.
+     * @param name the name of the Truck object to retrieve.
+     * @return the truck with the specified name
+     */
     public static Truck getTruckByName(String name) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
@@ -221,7 +244,11 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
         session.close();
         return retval;
     }
-    
+    /**
+     * Retrieves the truck with the specified id.
+     * @param id the id of the Truck object to retrieve.
+     * @return the truck with the specified id
+     */
     public static Truck getTruckByID(int id) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
@@ -249,9 +276,9 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
         //System.out.println(score);
         return (int) Math.round(score);
     }
-
+    
     @Override
-    public List<TruckReview> loadReviews() {        
+    public List<TruckReview> reloadReviews() {    
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
         Query q = session.createQuery(
@@ -266,6 +293,14 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
     }
 
     @Override
+    public List<TruckReview> loadReviews() {    
+        if (truckReviews.isEmpty() || !this.reviewsValid())
+            return this.reloadReviews();
+        else
+            return this.truckReviews;
+    }
+
+    @Override
     public Set<Tag> loadTags() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
@@ -273,7 +308,7 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
         List l = q.list();
         session.close();        
         for (Object o : l) {
-            this.addTags((Tag)o); 
+            if (o instanceof Tag) this.addTags((Tag)o); 
         }
         return this.tags;
     }
@@ -299,6 +334,15 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
         hash = 41 * hash + Objects.hashCode(this.openingTime);
         hash = 41 * hash + Objects.hashCode(this.closingTime);
         return hash;
+    }
+
+    @Override
+    public boolean reviewsValid() {
+        for (TruckReview r : truckReviews) {
+            if (r==null || !(r.getTruck().equals(this) && r.getReviewText() != null))
+                return false;
+        }
+        return true;
     }
 
 }

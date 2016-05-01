@@ -49,4 +49,12 @@
         <servlet-name>AddTag</servlet-name>
         <url-pattern>/addtags</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>ItemInfoFetch</servlet-name>
+        <servlet-class>edu.temple.controller.ItemInfoFetchServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ItemInfoFetch</servlet-name>
+        <url-pattern>/fetchItems</url-pattern>
+    </servlet-mapping>
 </web-app>

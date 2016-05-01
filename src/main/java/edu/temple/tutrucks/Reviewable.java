@@ -18,6 +18,24 @@ public interface Reviewable {
      * @param r The review to be associated
      */
     public void addReview(Review r);
+    /**
+     * Calculates the average total score of a reviewable entity.
+     * @return the average total score of a reviewable entit
+     */
     public int getScore();
+    /**
+     * Loads the reviewable entities reviews from the database.
+     * @return the reviewable entities reviews from the database
+     */
+    public List<? extends Review> reloadReviews();
+    /**
+     * Loads the reviewable entities reviews from the database if they have not been loaded previously. Otherwise, returns the previously loaded reviews.
+     * @return the reviewable entities reviews from the database
+     */
     public List<? extends Review> loadReviews();
+    /**
+     * Checks the validity of the current reviews for this reviewable.
+     * @return true if the reviews are valid, false otherwise.
+     */
+    boolean reviewsValid();
 }

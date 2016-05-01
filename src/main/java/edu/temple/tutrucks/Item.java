@@ -158,8 +158,13 @@ public class Item implements java.io.Serializable, Reviewable, Taggable, Searcha
     public String getSearchName() {
         return this.itemName;
     }
-
-    public static List<Item> searchItems(String terms) {
+    /**
+     * Retrieves a list of items that match the specified terms.
+     * @param criteria the String to match
+     * @return a list of items that match the specified terms
+     */
+    public static List<Item> searchItems(String criteria) {
+        String terms = criteria.toLowerCase();
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
         Query q = session.createQuery(
@@ -183,9 +188,9 @@ public class Item implements java.io.Serializable, Reviewable, Taggable, Searcha
         score /= (double)itemReviews.size();
         return (int) Math.round(score);
     }
-
+    
     @Override
-    public List<ItemReview> loadReviews() {
+    public List<ItemReview> reloadReviews() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
         Query q = session.createQuery(
@@ -200,16 +205,30 @@ public class Item implements java.io.Serializable, Reviewable, Taggable, Searcha
     }
 
     @Override
+    public List<ItemReview> loadReviews() {
+        if (this.itemReviews.isEmpty() || !this.reviewsValid())
+            return this.reloadReviews();
+        else
+            return this.itemReviews;
+    }
+
+    @Override
     public Set<Tag> loadTags() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
-        Query q = session.createQuery("from Tag t join t.items it where it.id = :id");
+        Query q = session.createQuery("from Tag t join t.items it where it.id = " + this.getId());
         List l = q.list();
         session.close();
-        for (Object o : l) this.addTags((Tag)o);
+        for (Object o : l) {
+            if (o instanceof Tag) this.addTags((Tag)o);
+        }
         return this.tags;
     }
-    
+    /**
+     * Retrieves the item with the specified id.
+     * @param id the id of the Item object to retrieve.
+     * @return the item with the specified id
+     */
     public static Item getItemByID(int id) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
@@ -239,6 +258,16 @@ public class Item implements java.io.Serializable, Reviewable, Taggable, Searcha
         hash = 53 * hash + Objects.hashCode(this.itemName);
         hash = 53 * hash + (int) (Double.doubleToLongBits(this.price) ^ (Double.doubleToLongBits(this.price) >>> 32));
         return hash;
+    }
+    
+    @Override
+    public boolean reviewsValid() {
+        for (ItemReview r : itemReviews) {
+            if (!(r.getItem().equals(this) && r.getReviewText() != null)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }
