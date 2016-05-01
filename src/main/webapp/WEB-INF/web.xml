@@ -57,4 +57,20 @@
         <servlet-name>ItemInfoFetch</servlet-name>
         <url-pattern>/fetchItems</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>UploadImage</servlet-name>
+        <servlet-class>edu.temple.controller.UploadImageServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UploadImage</servlet-name>
+        <url-pattern>/uploadImage</url-pattern>
+    </servlet-mapping>
+    <servlet>
+        <servlet-name>AddReview</servlet-name>
+        <servlet-class>edu.temple.controller.AddReviewServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AddReview</servlet-name>
+        <url-pattern>/addReview</url-pattern>
+    </servlet-mapping>
 </web-app>

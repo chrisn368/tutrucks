@@ -48,6 +48,11 @@ input
 	width: 50%;
         color: black;
 }
+
+.userAndDate{
+	font-weight: bold;
+}
+
 .search{
 	width: 25%;
 	color: black;

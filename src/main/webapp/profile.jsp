@@ -5,19 +5,19 @@
 <div class="container profile">
     <div class="col-md-4">
         <%
-            User user = (User) session.getAttribute("user");
+            User userProfile=new User(); //= (User) request.getParameter("userid");
 //            user = new User();
 //            user.setAvatar("https://upload.wikimedia.org/wikipedia/en/3/38/Avatarjakeneytiri.jpg");
 //            user.setDisplayName("Avatar");
-            String avatar = user.getAvatar();
-            List<TruckReview> truckReviews = user.getTruckReviews();
+            String avatar = userProfile.getAvatar();
+            List<TruckReview> truckReviews = userProfile.getTruckReviews();
 //            TruckReview tr = new TruckReview();
 //            Truck t = Truck.getTruckByID(1);
 //            tr.setTruck(t);
 //            tr.setReviewed(t);
 //            tr.setReviewText("best truck ever");
 //            truckReviews.add(tr);
-            List<ItemReview> itemReviews = user.getItemReviews();
+            List<ItemReview> itemReviews = userProfile.getItemReviews();
         %>
 
         <img class = "avatar" src="
@@ -28,7 +28,7 @@
              %>" 
              alt="No user avatar">
 
-        <h3><%=user.getDisplayName()%></h3>
+        <h3><%=userProfile.getDisplayName()%></h3>
         <h5><%=truckReviews.size()%> truck reviews</h5>
         <h5><%=itemReviews.size()%> item reviews</h5>
     </div>
