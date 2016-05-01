@@ -253,7 +253,7 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
         Query q = session.createQuery(
-                "from Truck where id='" + id + "'"
+                "from Truck where id=" + id + ""
         );
         Truck retval = (Truck) q.uniqueResult();
         session.close();

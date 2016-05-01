@@ -410,6 +410,21 @@ public class User implements java.io.Serializable, Visualizable {
         session.getTransaction().commit();
         session.close();
     }
+    /**
+     * Loads the user with the specified ID.
+     * @param id the ID of the user to load
+     * @return the user with the specified ID
+     */
+    public static User loadUserByID(int id) {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        Query q = session.createQuery(
+                "from User where id=" + id
+        );
+        User retval = (User) q.uniqueResult();
+        session.close();
+        return retval;
+    }
 }
 
 
