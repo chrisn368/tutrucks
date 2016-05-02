@@ -19,7 +19,7 @@
     <body>
         <form action="uploadImage" method="POST">
             <input type="file" name="image">
-            <input type="hidden" name="truck" value="truck">
+            <input type="hidden" name="type" value="truck">
             <select name="trucks">
                 <%
                     String truckName;
