@@ -4,7 +4,7 @@
     Author     : Chris
 --%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@ page import="edu.temple.tutrucks.*"%>
+<%@page import="edu.temple.tutrucks.*"%>
 <%@page import="java.util.List"%>
 <%@ include file="header.jsp"%>
 <!DOCTYPE html>
@@ -19,7 +19,7 @@
     <body>
         <form action="uploadImage" method="POST">
             <input type="file" name="image">
-            <input type="hidden" name="truck">
+            <input type="hidden" name="truck" value="truck">
             <select name="trucks">
                 <%
                     String truckName;
