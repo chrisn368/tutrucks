@@ -25,5 +25,5 @@ public interface Taggable {
      * Loads all associated tags from the database and attaches them to this entity.
      * @return the set of tags attached to this entity
      */
-    public java.util.Set<Tag> loadTags();
+    public Taggable loadTags();
 }

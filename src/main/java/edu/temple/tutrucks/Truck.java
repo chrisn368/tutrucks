@@ -3,10 +3,12 @@ package edu.temple.tutrucks;
 
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
 
@@ -27,15 +29,15 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
      private Time openingTime;
      private Time closingTime;
      private String avatar;
-     private List<TruckReview> truckReviews = new ArrayList<>();
-     private List<Menu> menus = new ArrayList<>();
-     private Set<Tag> tags = new TreeSet();
+     private boolean takesCard;
+     private List<TruckReview> truckReviews;
+     private List<Menu> menus;
+     private Set<Tag> tags;
 
      /**
       * Required empty constructor
       */
     public Truck() {
-        
     }
     /**
      * Returns the ID of this truck. Required by Hibernate
@@ -113,11 +115,7 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
      */
     @Override
     public void addReview(Review r) {
-        if (!r.getReviewed().equals(this)) {
-            //error handling
-            return;
-        }
-        truckReviews.add((TruckReview)r);
+        r.setReviewed(this);
     }
     /**
      * Returns the set of tags attached to this truck. Required by Hibernate
@@ -134,8 +132,7 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
     @Override
     public void addTags(Tag... t) {
         for (Tag x : t) {
-            tags.add(x);
-            if (!x.getTrucks().contains(this)) x.addEntity(this);
+            x.addEntity(this);
         }
     }
     /**
@@ -143,23 +140,22 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
      * @param truckReviews the list of truck reviews for this truck
      */
     public void setTruckReviews(List<TruckReview> truckReviews) {
-        this.truckReviews.clear();
-        this.truckReviews.addAll(truckReviews);
+        this.truckReviews = truckReviews;
+        this.removeNullReviews();
     }
     /**
      * Sets the list of menus for this truck. Required by Hibernate
      * @param menus the list of menus for this truck
      */
     public void setMenus(List<Menu> menus) {
-        this.menus.clear();
-        this.menus.addAll(menus);
+        this.menus = menus;
     }
     /**
      * Sets the set of tags attached to this truck. Required by Hibernate
      * @param tags the set of tags attached to this truck
      */
     public void setTags(Set<Tag> tags) {
-        this.tags.addAll(tags);
+        this.tags = tags;
     }
     /**
      * Returns the time this truck opens on normal weekdays. Required by Hibernate
@@ -188,6 +184,20 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
      */
     public void setClosingTime(Time closingTime) {
         this.closingTime = closingTime;
+    }
+    /**
+     * Gets whether or not this truck takes credit cards or is cash-only. Required by Hibernate.
+     * @return true if this truck takes cards, false if it is cash-only
+     */
+    public boolean isTakesCard() {
+        return this.takesCard;
+    }
+    /**
+     * Sets whether or not this truck takes credit cards or is cash-only. Required by Hibernate.
+     * @param takesCard whether or not this truck takes cards or is cash-only
+     */
+    public void setTakesCard(boolean takesCard) {
+        this.takesCard = takesCard;
     }
 
     @Override
@@ -247,17 +257,29 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
     /**
      * Retrieves the truck with the specified id.
      * @param id the id of the Truck object to retrieve.
+     * @param loadReviews true if you want to load reviews with this truck object, false otherwise
+     * @param loadTags true if you want to load tags with this truck object, false otherwise
      * @return the truck with the specified id
      */
-    public static Truck getTruckByID(int id) {
+    public static Truck getTruckByID(int id, boolean loadReviews, boolean loadTags) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
-        Query q = session.createQuery(
-                "from Truck where id=" + id + ""
-        );
-        Truck retval = (Truck) q.uniqueResult();
+        Truck retval = (Truck) session.get(Truck.class, id);
+        if (loadReviews) {
+            Hibernate.initialize(retval.getTruckReviews());
+            retval.getTruckReviews().size();
+            retval.removeNullReviews();
+        }
+        if (loadTags) {
+            Hibernate.initialize(retval.getTags());
+            retval.getTags().size();
+        }
         session.close();
         return retval;
+    }
+    
+    public static Truck getTruckByID(int id) {
+        return Truck.getTruckByID(id, false, false);
     }
     
     @Override
@@ -276,41 +298,31 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
         //System.out.println(score);
         return (int) Math.round(score);
     }
-    
+
     @Override
-    public List<TruckReview> reloadReviews() {    
+    public Truck loadReviews() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
-        Query q = session.createQuery(
-                "from TruckReview tr where tr.truck.id=" + this.id + " order by tr.reviewDate desc"
-        );
-        List l = q.list();
+        Truck retval = (Truck) session.get(Truck.class, this.getId());
+        Hibernate.initialize(retval.getTruckReviews());
+        session.getTransaction().commit();
         session.close();
-        ArrayList<TruckReview> revs = new ArrayList<>(l.size());
-        for (Object o : l) revs.add((TruckReview)o);
-        this.setTruckReviews(revs);
-        return this.truckReviews;
+        retval.getTruckReviews().size();
+        this.setTruckReviews(retval.getTruckReviews());
+        return retval;
     }
 
     @Override
-    public List<TruckReview> loadReviews() {    
-        if (truckReviews.isEmpty() || !this.reviewsValid())
-            return this.reloadReviews();
-        else
-            return this.truckReviews;
-    }
-
-    @Override
-    public Set<Tag> loadTags() {
+    public Truck loadTags() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
-        Query q = session.createQuery("from Tag t join t.trucks tr where tr.id = " + this.getId());
-        List l = q.list();
-        session.close();        
-        for (Object o : l) {
-            if (o instanceof Tag) this.addTags((Tag)o); 
-        }
-        return this.tags;
+        Truck retval = (Truck) session.get(Truck.class, this.getId());
+        Hibernate.initialize(retval.getTags());
+        session.getTransaction().commit();
+        session.close();
+        retval.getTags().size();
+        this.setTags(retval.getTags());
+        return retval;
     }
     
     @Override
@@ -336,13 +348,46 @@ public class Truck implements java.io.Serializable, Reviewable, Taggable, Search
         return hash;
     }
 
+    public static List<String> getAllTruckNames() {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        Query q = session.createQuery("select truckName from Truck order by truckName ASC");
+        List l = q.list();
+        session.close();
+        return l;
+    }
+    
+
     @Override
-    public boolean reviewsValid() {
-        for (TruckReview r : truckReviews) {
-            if (r==null || !(r.getTruck().equals(this) && r.getReviewText() != null))
-                return false;
+    public void removeNullReviews() {
+        if (this.getTruckReviews() != null) {
+            for (int i=0; i < this.getTruckReviews().size(); i++) {
+                if (this.getTruckReviews().get(i) == null) this.getTruckReviews().remove(i);
+            }
         }
-        return true;
+    }
+
+    @Override
+    public void save() {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        session.saveOrUpdate(this);
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    @Override
+    public void delete() {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        Truck truck = (Truck) session.get(Truck.class, this.getId());
+        Hibernate.initialize(truck.getTruckReviews());
+        for (TruckReview tr : truck.truckReviews) 
+            session.delete(tr);
+        
+        session.delete(truck);
+        session.getTransaction().commit();
+        session.close();
     }
 
 }

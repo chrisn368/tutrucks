@@ -5,41 +5,53 @@
  */
 package edu.temple.controller;
 
-import org.junit.After;
+import edu.temple.tutrucks.User;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 
 /**
  *
  * @author nickdellosa
- */
-public class AddReviewServletTest {
+ */ 
+
+public class AddReviewServletTest extends ServletTest {
     
-    public AddReviewServletTest() {
-    }
+    private static User realUser;
     
     @BeforeClass
-    public static void setUpClass() {
+    public static void setup() {
+        realUser = User.createUser("addreviewservlettest@test.com", "password", false, null, null, null);
     }
     
     @AfterClass
-    public static void tearDownClass() {
+    public static void tearDown() {
+        realUser.delete();
     }
     
-    @Before
-    public void setUp() {
+    @Test
+    public void testDoPostTruck() {
+        when(session.getAttribute("user")).thenReturn(realUser);
+        when(request.getParameter("text")).thenReturn("test review");
+        when(request.getParameter("type")).thenReturn("truck");
+        when(request.getParameter("rating")).thenReturn("5");
+        when(request.getParameter("id")).thenReturn("1");
+        new AddReviewServlet().doPost(request, response);
+        User user = realUser.loadUserReviews();
+        assertTrue(user.getTruckReviews().size() > 0);
     }
     
-    @After
-    public void tearDown() {
+    @Test
+    public void testDoPostItem() {
+        when(session.getAttribute("user")).thenReturn(realUser);
+        when(request.getParameter("text")).thenReturn("test review");
+        when(request.getParameter("type")).thenReturn("item");
+        when(request.getParameter("rating")).thenReturn("5");
+        when(request.getParameter("id")).thenReturn("1");
+        new AddReviewServlet().doPost(request, response);
+        User user = realUser.loadUserReviews();
+        assertTrue(user.getItemReviews().size() > 0);
     }
-
-    // TODO add test methods here.
-    // The methods must be annotated with annotation @Test. For example:
-    //
-    // @Test
-    // public void hello() {}
 }

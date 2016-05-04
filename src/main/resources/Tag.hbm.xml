@@ -10,13 +10,13 @@
     <property name="tagName" type="string">
       <column name="tag_name" not-null="true"/>
     </property>
-    <set name="items" table="tag_item_map" inverse="false" lazy="false" fetch="select">
+    <set name="items" table="tag_item_map" inverse="false" lazy="true" fetch="select">
       <key>
         <column name="tag_id" />
       </key>
       <many-to-many column="item_id" class="edu.temple.tutrucks.Item" />
     </set>
-    <set name="trucks" table="tag_truck_map" inverse="false" lazy="false" fetch="select">
+    <set name="trucks" table="tag_truck_map" inverse="false" lazy="true" fetch="select">
       <key>
         <column name="tag_id" />
       </key>

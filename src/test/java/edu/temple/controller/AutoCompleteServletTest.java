@@ -8,24 +8,19 @@ package edu.temple.controller;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import org.junit.Test;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  *
  * @author nickdellosa
  */
-public class AutoCompleteServletTest {
+public class AutoCompleteServletTest extends ServletTest {
     
     @Test
     public void testDoGet() {
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
         when(request.getParameter("criteria")).thenReturn("truck:chicken");
         when(request.getParameter("numResults")).thenReturn("1");
         when(request.getParameter("subscripts")).thenReturn("false");
@@ -45,8 +40,6 @@ public class AutoCompleteServletTest {
     
     @Test
     public void testDoGetWithSubscripts() {
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
         when(request.getParameter("criteria")).thenReturn("truck:chicken");
         when(request.getParameter("numResults")).thenReturn("1");
         when(request.getParameter("subscripts")).thenReturn("true");

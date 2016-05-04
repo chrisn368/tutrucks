@@ -12,9 +12,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -22,21 +19,20 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
  *
  * @author nickdellosa
  */
-public class UploadImageServletTest {
+public class UploadImageServletTest extends ServletTest{
     
     private static final String TEST_IMAGE = UploadImageServletTest.class.getClassLoader().getResource("TestImage.jpg").getFile();
     private static final String TEST_IMAGE2 = UploadImageServletTest.class.getClassLoader().getResource("TestImage2.jpg").getFile();
     
-    private HttpServletRequest request;
-    private HttpServletResponse response;
-    private HttpSession session;
     private Part imagePart;
     private User fakeUser;
     
@@ -52,14 +48,12 @@ public class UploadImageServletTest {
     }
     
     @Before
-    public void setUp() {
-        request = mock(HttpServletRequest.class);
-        response = mock(HttpServletResponse.class);
-        session = mock(HttpSession.class);
+    @Override
+    public void setupInstance() throws IOException {
+        super.setupInstance();
         imagePart = mock(Part.class);
-        fakeUser = new User();
+        fakeUser = spy(new User());
         when(session.getAttribute("user")).thenReturn(fakeUser);
-        when(request.getSession()).thenReturn(session);
     }
     
     @After
@@ -91,6 +85,7 @@ public class UploadImageServletTest {
     public void testDoPostUser() throws FileNotFoundException, IOException, ServletException {
         fakeUser.setId(0);
         fakeUser.setAvatar("null");
+        doNothing().when(fakeUser).save();
         when(request.getPart("image")).thenReturn(imagePart);
         when(request.getParameter("type")).thenReturn("user");
         UploadImageServlet servlet = new UploadImageServlet();

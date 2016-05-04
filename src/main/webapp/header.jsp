@@ -1,4 +1,5 @@
 
+<%@page import="edu.temple.tutrucks.Permissions"%>
 <!DOCTYPE html>
 <%@page import="edu.temple.tutrucks.User"%>
 <% 
@@ -7,14 +8,22 @@
         invalidLogin = Boolean.parseBoolean(request.getParameter("invalid"));
     } catch (Exception e) {}
     User user = (User) session.getAttribute("user");
-    String logOnAreaVisibility = " display:none; ";
-    String logOffAreaVisibility = " display:none; ";
+    String logOffAreaVisibility, logOnAreaVisibility, adminAreaVisibility;
+    adminAreaVisibility=logOnAreaVisibility=logOffAreaVisibility=" display:none ";
+    int uid=0;
     if (user == null) {
         logOnAreaVisibility = " display:inline-block; ";
         logOffAreaVisibility ="display: none;";
+        adminAreaVisibility = " display:none; ";
     }else{
         logOnAreaVisibility = " display:none; ";
         logOffAreaVisibility = " display:inline-block; ";
+        uid=user.getId();
+        if (user.getPermissions()==Permissions.ADMIN){
+            adminAreaVisibility = " display: inline-block;";
+        }else{
+            adminAreaVisibility = " display:none; ";
+        }
     }
 %>
 <html lang="en">
@@ -102,8 +111,8 @@
           <ul class="nav navbar-nav">
             <li class="active"><a href="index.jsp">Home</a></li>
             <li><a href="search.jsp?criteria=truck:*">All Trucks</a></li>
-            <li><a href="#" style="<%=logOffAreaVisibility%>">My Profile</a></li>
-            <li><a href="#">About</a></li>
+            <li><a href="profile.jsp?userid=<%=uid%>" style="<%=logOffAreaVisibility%>">My Profile</a></li>
+            <li><a href="adminDash.jsp" style="<%=adminAreaVisibility%>">Admin Panel</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li class="dropdown" id="loginDropdown" style="<%=logOnAreaVisibility%>">
@@ -123,7 +132,7 @@
               
             </li>
             <li class="" id="logoutTab" style="<%=logOffAreaVisibility%>">
-                    <a style="color:black" href="javascript:$.post('logout'); window.location.href ='index.jsp';">Logout</a>
+                    <a style="color:black" href="javascript:$.post('logout', { success: function(data) { window.location.href ='index.jsp'; } });">Logout</a>
             </li>
           </ul>
         </div><!--/.nav-collapse -->

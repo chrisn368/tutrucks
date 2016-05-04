@@ -6,6 +6,7 @@
 package edu.temple.tutrucks;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -21,12 +22,27 @@ import static org.mockito.Mockito.*;
  *
  * @author michn_000
  */
-public class TruckTest extends IntegrationTestUsingResources {
+public class TruckTest {
     private TruckReview review;
     private Tag tag;
     private Truck truck;
     private Set<Truck> truckSet;
     private List<Tag> tagList;
+    private static User realUser;
+    private static Tag realTag;
+    
+    
+    @BeforeClass
+    public static void setup() {
+        realUser = User.createUser("trucktest@test.com", "password", false, null, null, null);
+        realTag = Tag.retrieveTag("truck test tag", true);
+    }
+    
+    @AfterClass
+    public static void tearDown() {
+        realUser.delete();
+        realTag.delete();
+    }
     
     @Before
     public void setUpMock() {
@@ -49,87 +65,34 @@ public class TruckTest extends IntegrationTestUsingResources {
         assertNotNull(truckSet);
         assertNotNull(tagList);
     }
-
-    @Test
-    public void testAddReview() {
-        when(review.getReviewed()).thenReturn(truck);  
-        truck.addReview(review);
-        System.out.println("Verifying review called getReviewed");
-        verify(review).getReviewed();
-        System.out.println("Verifying if condition was false");
-        assertEquals(true, review.getReviewed().equals(truck));
-        System.out.println("Verifying that the review was added to the list");
-        assertEquals(truck.getTruckReviews().get(0), review);
-    }
-    /*
-    @Test
-    public void testAddReviewFailed() {
-        when((Reviewable)review.getReviewed()).thenReturn(new Item());  
-        truck.addReview(review);
-        System.out.println("Verifying review called getReviewed");
-        verify(review).getReviewed();
-        System.out.println("Verifying if condition was true");
-        assertEquals(false, review.getReviewed().equals(truck));
-        System.out.println("Verifying that the review was not added to the list");
-        assertNotEquals(truck.getTruckReviews().contains(review), review);        
-    } */
-
-   @Test
-    public void testAddTagTruckInTagSet() { 
-        truckSet.add(truck);
-        when(tag.getTrucks()).thenReturn(truckSet);
-        truck.addTags(tag);
-        System.out.println("Verifying tag called get trucks");
-        verify(tag).getTrucks();
-        System.out.println("Verifying tag was added to truck");
-        assertEquals(truck.getTags().contains(tag), true);
-    }
-    
-    @Test
-    public void testAddTagTruckNotInTagSet() { 
-        when(tag.getTrucks()).thenReturn(truckSet);
-        truck.addTags(tag);
-        System.out.println("Verifying tag called get trucks");
-        verify(tag).getTrucks();
-        System.out.println("Verifying truck added to tag");
-        verify(tag).addEntity(truck);
-        System.out.println("Verifying tag added the truck");
-        assertEquals(truck.getTags().contains(tag), true);
-    }
-    
-    @Test
-    public void testAddMultipleTags() { 
-        truckSet.add(truck);
-        for (int i = 0; i < tagList.size(); i++) {
-            when(tagList.get(i).getTrucks()).thenReturn(truckSet);
-        }
-        truck.addTags(tagList.get(0), tagList.get(1), tagList.get(2), tagList.get(3), tagList.get(4));
-        System.out.println("Verifying all tags called get trucks");
-         for (int i = 0; i < tagList.size(); i++) {
-             verify(tagList.get(i)).getTrucks();
-        }
-        System.out.println("Verifying all tags were added to truck");    
-        for (int i = 0; i < tagList.size(); i++) {
-             assertEquals(truck.getTags().contains(tagList.get(i)), true);
-        } 
-    }
     
     @Test
     public void testGetScore() {
-        assertEquals(0, truck.getScore());
         TruckReview r1 = new TruckReview();
         TruckReview r2 = new TruckReview();
         r1.setReviewStars(10);
         r2.setReviewStars(0);
         r1.setTruck(truck);
         r2.setTruck(truck);
-        truck.addReview(r1);
-        truck.addReview(r2);
+        List<TruckReview> reviewList = new ArrayList<>(2);
+        reviewList.add(r1);
+        reviewList.add(r2);
+        truck.setTruckReviews(reviewList);
         assertEquals(5, truck.getScore());
     }
     
     
     //INTEGRATION TESTING
+    
+    @Test
+    public void testGetTrucksByID() {
+        Truck realTruck = Truck.getTruckByID(1, true, true);
+        assertTrue(realTruck.getId() > 0);
+        assertTrue(realTruck.getTruckName() != null);
+        assertTrue(realTruck.getMenus() != null);
+        assertTrue(realTruck.getTruckReviews() != null);
+        assertTrue(realTruck.getTags() != null);
+    }
     
     @Test
     public void testSearchTrucks() {
@@ -150,61 +113,55 @@ public class TruckTest extends IntegrationTestUsingResources {
 
     @Test
     public void testAddReviewIntegration() {
-        Review newTruckReview = new TruckReview();
-        newTruckReview.setReviewText("review text");
-        newTruckReview.setReviewDate(new Date());
-        newTruckReview.setReviewStars(2);
-        newTruckReview.setReviewed(truck);
-        
-        
+        Truck realTruck = Truck.getTruckByID(2);
+        Review realTruckReview = new TruckReview();
+        realTruckReview.setReviewText("review text");
+        realTruckReview.setReviewDate(new Date());
+        realTruckReview.setReviewStars(2);
+        realTruckReview.setReviewed(realTruck);
+        realTruckReview.setUser(realUser);
+        realTruckReview.save();
+        realTruck = realTruck.loadReviews();
+        assertEquals(1, realTruck.getTruckReviews().size());
+        assertTrue(realTruck.getTruckReviews().contains(realTruckReview));
+        realTruckReview.delete();
     }
     
     
     @Test
     public void testAddTagIntegration() {
         Truck realTruck = Truck.getTruckByID(1);
-        realTruck.addTags(tag);
-        tag.setTagName("test tag");
-        tag.save();
-        assertTrue(realTruck.loadTags().contains(tag));
-        tag.delete();
+        realTag.addEntity(realTruck);
+        realTag.save();
+        assertTrue(realTruck.loadTags().getTags().contains(realTag));
     }
     
     @Test
     public void testAddMultipleTagsIntegration() {
-        Tag tag2 = mock(Tag.class);
-        tag.setTagName("test tag");
-        tag2.setTagName("test tag 2");
-        truck.addTags(tag, tag2);
-        tag.save();
+        Tag tag1 = Tag.retrieveTag("truck test tag 1", true);
+        Tag tag2 = Tag.retrieveTag("truck test tag 2", true);
+        Truck realTruck = Truck.getTruckByID(1);
+        realTruck.addTags(tag1, tag2);
+        tag1.save();
         tag2.save();
-        assertTrue(truck.loadTags().contains(tag));
-        assertTrue(truck.loadTags().contains(tag2));
-        tag.delete();
+        Truck rt = realTruck.loadTags();
+        assertTrue(rt.getTags().contains(tag1));
+        assertTrue(rt.getTags().contains(tag2));
+        tag1.delete();
         tag2.delete();
     }
     
     @Test
-    public void testAddReviewFailIntegration() {
-        Truck t2 = new Truck();
-        t2.setId(-1);
-        TruckReview tr = new TruckReview();
-        tr.setTruck(t2);
-        truck.addReview(tr);
-        assertTrue(truck.getTruckReviews().isEmpty());
-    }
-    
-    @Test
-    public void testreloadReviews() {
-        Truck realTruck = Truck.getTruckByID(1);
+    public void testLoadReviews() {
+        Truck realTruck = Truck.getTruckByID(1, false, false);
         TruckReview realFakeReview = new TruckReview();
         realFakeReview.setTruck(realTruck);
-        realFakeReview.setUser(IntegrationTestResources.getTestUser());
+        realFakeReview.setUser(realUser);
         realFakeReview.setReviewDate(new Date());
         realFakeReview.setReviewStars(5);
         realFakeReview.setReviewText("fake review");
         realFakeReview.save();
-        assertTrue(realTruck.loadReviews().contains(realFakeReview));
+        assertTrue(realTruck.loadReviews().getTruckReviews().contains(realFakeReview));
         realFakeReview.delete();
     }
     
@@ -223,6 +180,18 @@ public class TruckTest extends IntegrationTestUsingResources {
         assertFalse(realTruck.equals(Truck.getTruckByID(2)));
         Object testObject = new Object();
         assertFalse(realTruck.equals(testObject));
+    }
+    
+    @Test
+    public void testAllTruckNames() {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        Query q = session.createQuery("select truckName from Truck order by truckName ASC");
+        List l = q.list();
+        session.close();
+        List<String> lreal = Truck.getAllTruckNames();
+        assertEquals(l.size(), lreal.size());
+        for (int i=0; i < l.size(); i++) assertEquals(l.get(i), lreal.get(i));
     }
 }
 

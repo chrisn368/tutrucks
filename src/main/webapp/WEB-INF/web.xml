@@ -73,4 +73,61 @@
         <servlet-name>AddReview</servlet-name>
         <url-pattern>/addReview</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>EditUserInfo</servlet-name>
+        <servlet-class>edu.temple.controller.EditUserInfoServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EditUserInfo</servlet-name>
+        <url-pattern>/edituserinfo</url-pattern>
+    </servlet-mapping>
+    <servlet>
+        <servlet-name>AllOpenTrucks</servlet-name>
+        <servlet-class>edu.temple.controller.AllOpenTrucks</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AllOpenTrucks</servlet-name>
+        <url-pattern>/AllOpenTrucks</url-pattern>
+    </servlet-mapping>
+     <servlet>
+        <servlet-name>AddTruckServlet</servlet-name>
+        <servlet-class>edu.temple.controller.AddTruckServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AddTruckServlet</servlet-name>
+        <url-pattern>/AddTruckServlet</url-pattern>
+    </servlet-mapping>
+    <servlet>
+        <servlet-name>DeleteTagServlet</servlet-name>
+        <servlet-class>edu.temple.controller.DeleteTagServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DeleteTagServlet</servlet-name>
+        <url-pattern>/DeleteTagServlet</url-pattern>
+    </servlet-mapping>
+    <servlet>
+        <servlet-name>DeleteTruckServlet</servlet-name>
+        <servlet-class>edu.temple.controller.DeleteTruckServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DeleteTruckServlet</servlet-name>
+        <url-pattern>/DeleteTruckServlet</url-pattern>
+    </servlet-mapping>
+    <servlet>
+        <servlet-name>EditMenuServlet</servlet-name>
+        <servlet-class>edu.temple.controller.EditMenuServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EditMenuServlet</servlet-name>
+        <url-pattern>/EditMenuServlet</url-pattern>
+    </servlet-mapping>
+     <servlet>
+        <servlet-name>EditTruckServlet</servlet-name>
+        <servlet-class>edu.temple.controller.EditTruckServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>EditTruckServlet</servlet-name>
+        <url-pattern>/EditTruckServlet</url-pattern>
+    </servlet-mapping>
+    
 </web-app>

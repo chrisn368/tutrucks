@@ -14,7 +14,7 @@
                                 &nbsp;
                             </div>
                             <div class="col-lg-4" style="text-align: center;">
-                                <input type="email" id="email_r" pattern="(.+)@(.+)\.((com)|(edu)|(org)|(gov))" name="email" placeholder="Email" /><br />
+                                <input type="email" id="email_r" pattern="(.+)@(.+)\.((com)|(edu)|(org)|(gov)|(net)|(io))" name="email" placeholder="Email" /><br />
                                 <input type="password" id="password_r" pattern=".{6,16}" name="password" placeholder="Password (6-16 characters)" /><br />
                                 <input type="hidden" id="facebook_id_r" name="facebook_id" />
                                 <input type="hidden" id="display_r" name="display" />

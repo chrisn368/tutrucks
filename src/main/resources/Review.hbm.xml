@@ -19,12 +19,12 @@
             <column name="user_id" />
         </many-to-one>
         <union-subclass name="edu.temple.tutrucks.TruckReview" table="truck_review">
-            <many-to-one name="truck" class="edu.temple.tutrucks.Truck" fetch="select">
+            <many-to-one name="truck" class="edu.temple.tutrucks.Truck" fetch="select" lazy="false">
                 <column name="truck_id" />
             </many-to-one>
         </union-subclass>
         <union-subclass name="edu.temple.tutrucks.ItemReview" table="item_review">
-            <many-to-one name="item" class="edu.temple.tutrucks.Item" fetch="select">
+            <many-to-one name="item" class="edu.temple.tutrucks.Item" fetch="select" lazy="false">
                 <column name="item_id" />
             </many-to-one>
         </union-subclass>

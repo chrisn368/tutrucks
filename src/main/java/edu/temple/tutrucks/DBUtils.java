@@ -63,7 +63,7 @@ public class DBUtils {
         }
         if (tags != null) {
             ArrayList<Tag> tagList = new ArrayList();
-            for (String tag : tags.split("&")) tagList.add(Tag.retrieveTag(tag, false));
+            for (String tag : tags.split(",")) tagList.add(Tag.retrieveTag(tag.trim(), false));
             HashSet<Searchable> taggedResults = new HashSet<>();
             for (Tag t : tagList) {
                 taggedResults.addAll(t.getTrucks());

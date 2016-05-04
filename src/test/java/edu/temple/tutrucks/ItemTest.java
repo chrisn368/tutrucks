@@ -18,12 +18,26 @@ import static org.mockito.Mockito.*;
  *
  * @author michn_000
  */
-public class ItemTest extends IntegrationTestUsingResources { // needs to be test suited with the others
+public class ItemTest {
     private ItemReview review;
     private Tag tag;
     private Item item;
     private Set<Item> itemSet;
     private List<Tag> tagList;
+    private static User realUser;
+    private static Tag realTag;
+    
+    @BeforeClass
+    public static void setup() {
+        realUser = User.createUser("itemtest@test.com", "password", false, null, null, null);
+        realTag = Tag.retrieveTag("item test tag", true);
+    }
+    
+    @AfterClass
+    public static void tearDown() {
+        realUser.delete();
+        realTag.delete();
+    }
     
     @Before
     public void setUpMock() {
@@ -46,7 +60,7 @@ public class ItemTest extends IntegrationTestUsingResources { // needs to be tes
         assertNotNull(itemSet);
         assertNotNull(tagList);
     }
-
+/*
     @Test
     public void testAddReview() {
         when(review.getReviewed()).thenReturn(item);  
@@ -111,29 +125,28 @@ public class ItemTest extends IntegrationTestUsingResources { // needs to be tes
         for (int i = 0; i < tagList.size(); i++) {
              assertTrue(item.getTags().contains(tagList.get(i)));
         } 
-    }
+    } */
     
     @Test
     public void testAddTagIntegration() {
         Item realItem = Item.getItemByID(1);
-        realItem.addTags(tag);
-        tag.setTagName("test tag");
-        tag.save();
-        assertTrue(realItem.loadTags().contains(tag));
-        tag.delete();
+        realItem.addTags(realTag);
+        realTag.save();
+        assertTrue(realItem.loadTags().getTags().contains(realTag));
     }
     
     @Test
     public void testGetScore() {
-        assertEquals(0, item.getScore());
         ItemReview ir1 = new ItemReview();
         ItemReview ir2 = new ItemReview();
         ir1.setReviewStars(10);
         ir2.setReviewStars(0);
         ir1.setItem(item);
         ir2.setItem(item);
-        item.addReview(ir1);
-        item.addReview(ir2);
+        List<ItemReview> reviewList = new ArrayList<>(2);
+        reviewList.add(ir1);
+        reviewList.add(ir2);
+        item.setItemReviews(reviewList);
         assertEquals(5, item.getScore());
     }
     
@@ -155,16 +168,16 @@ public class ItemTest extends IntegrationTestUsingResources { // needs to be tes
     }
     
     @Test
-    public void testreloadReviews() { 
-        Item realItem = Item.getItemByID(1);
+    public void testLoadReviews() { 
+        Item realItem = Item.getItemByID(1, false, false);
         ItemReview realFakeReview = new ItemReview();
         realFakeReview.setItem(realItem);
-        realFakeReview.setUser(IntegrationTestResources.getTestUser());
+        realFakeReview.setUser(realUser);
         realFakeReview.setReviewDate(new Date());
         realFakeReview.setReviewStars(5);
         realFakeReview.setReviewText("fake review");
         realFakeReview.save();
-        assertTrue(realItem.reloadReviews().contains(realFakeReview));
+        assertTrue(realItem.loadReviews().getItemReviews().contains(realFakeReview));
         realFakeReview.delete();
     }
     

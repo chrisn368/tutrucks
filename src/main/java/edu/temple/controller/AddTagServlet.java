@@ -59,12 +59,14 @@ public class AddTagServlet extends HttpServlet {
                 tags[i] = Tag.retrieveTag(tagNames[i], true);
             }
             entity.addTags(tags);
+            for (Tag t : tags) t.save();
             JsonArray respArray = new JsonArray();
-            for (Tag t : entity.loadTags()) {
+            for (Tag t : entity.loadTags().getTags()) {
                 respArray.add(t.getTagName());
             }
             Gson gson = new Gson();
-            resp.getWriter().print(gson.toJson(respArray));
+            String s = gson.toJson(respArray);
+            resp.getWriter().print(s);
         } catch(NumberFormatException e) {
             System.err.println(e.getMessage());
             e.printStackTrace();

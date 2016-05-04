@@ -17,14 +17,13 @@
         <property name="price" type="double">
             <column name="price" precision="22" scale="0" not-null="true" />
         </property>
-        <list name="itemReviews" table="item_review" inverse="true" lazy="true" fetch="select">
+        <bag name="itemReviews" table="item_review" inverse="true" lazy="true" fetch="select">
             <key>
                 <column name="item_id" />
             </key>
-            <list-index column="review_stars" />
             <one-to-many class="edu.temple.tutrucks.ItemReview" />
-        </list>
-        <set name="tags" table="tag_item_map" inverse="true" lazy="true" fetch="select">
+        </bag>
+        <set name="tags" table="tag_item_map" inverse="true" lazy="true" fetch="select" sort="natural">
             <key>
                 <column name="item_id" />
             </key>

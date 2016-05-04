@@ -5,7 +5,7 @@
  */
 package edu.temple.controller;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import edu.temple.tutrucks.Item;
@@ -37,31 +37,39 @@ public class ItemInfoFetchServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
-           int itemID = Integer.parseInt(req.getParameter("id"));
-           Item item = Item.getItemByID(itemID);
-           List<ItemReview> reviews = item.loadReviews();
+           
+           int itemID = Integer.parseInt(req.getParameter("criteria"));
+           Item item = Item.getItemByID(itemID, true, true);
+           List<ItemReview> reviews = item.getItemReviews();
            JsonArray jsArrayReviews = new JsonArray();
            for (ItemReview ir : reviews) {
+               if (ir!=null){
+               
                JsonObject cur = new JsonObject();
                cur.addProperty("text", ir.getReviewText());
                cur.addProperty("stars", ir.getReviewStars());
+               
                cur.addProperty("date", DateFormat.getDateInstance().format(ir.getReviewDate()));
                JsonObject jsUser = new JsonObject();
                jsUser.addProperty("name", ir.getUser().getDisplayName());
                jsUser.addProperty("email", ir.getUser().getUserEmail());
                jsUser.addProperty("avatar", ir.getUser().getAvatar());
+               jsUser.addProperty("uid", ir.getUser().getId());
+               
                cur.add("user", jsUser);
                jsArrayReviews.add(cur);
+               }
            }
+           
            JsonObject retval = new JsonObject();
            retval.add("reviews", jsArrayReviews);
-           Set<Tag> tags = item.loadTags();
+           Set<Tag> tags = item.getTags();
            JsonArray jsArrayTags = new JsonArray();
            for (Tag t : tags) {
                jsArrayTags.add(t.getTagName());
            }
            retval.add("tags", jsArrayTags);
-           Gson gson = new Gson();
+           Gson gson = new GsonBuilder().serializeNulls().create();
            String s = gson.toJson(retval);
            resp.getWriter().print(s);
         } catch (Exception e) {

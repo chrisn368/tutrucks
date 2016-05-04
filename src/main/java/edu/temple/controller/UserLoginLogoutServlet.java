@@ -32,12 +32,15 @@ public class UserLoginLogoutServlet extends HttpServlet {
         if (req.getServletPath().endsWith("login")) {
             String email = req.getParameter("email");
             String password = req.getParameter("password");
+            String displayName= req.getParameter("display");
+            String avatarURL = req.getParameter("avatar");
             String fbID;
             User u;
             if (password == null) {
                 fbID = req.getParameter("fbID");
                 u = User.validateUserFacebook(email, fbID);
                 session.setAttribute("user", u);
+                u.linkUserFacebook(fbID, displayName, avatarURL);
             } else {
                 u = User.validateUser(email, password);
                 System.out.println("User: "+u);

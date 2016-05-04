@@ -32,11 +32,6 @@ public class UserCreateServlet extends HttpServlet {
         String email = req.getParameter("email");
         String password = req.getParameter("password");
         String page = req.getParameter("currentpage");
-        if (!email.matches(EMAIL_VERIFICATION)) {
-            // redirect back to registration
-        } else if (password.length()>16 || password.length()<6) {
-            // redirect back to registration
-        }
         boolean fb = Boolean.parseBoolean(req.getParameter("facebook"));
         String display, avatar, fbID;
         display = avatar = fbID = null;
@@ -45,7 +40,14 @@ public class UserCreateServlet extends HttpServlet {
             avatar = req.getParameter("avatar");
             fbID = req.getParameter("facebook_id");
         }
-        User user = User.createUser(email, password, fb, display, avatar, fbID);
+        User user = null;
+        try {
+            user = User.createUser(email, password, fb, display, avatar, fbID);
+        } catch (IllegalArgumentException ex) {
+            System.err.println("ex: " + ex.getLocalizedMessage());
+            resp.sendRedirect("error.jsp?msg=" + ex.getLocalizedMessage());
+            return;
+        }
         HttpSession session = req.getSession(true);
         session.setAttribute("user", user);
         resp.sendRedirect(page==null?"/":page);

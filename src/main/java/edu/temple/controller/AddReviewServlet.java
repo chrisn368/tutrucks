@@ -43,12 +43,12 @@ public class AddReviewServlet extends HttpServlet {
         int redirectID = 0;
         switch (type) {
             case "truck":
-                r = Truck.getTruckByID(id);
+                r = Truck.getTruckByID(id, true, false);
                 review = new TruckReview();
                 redirectID = id;
                 break;
             case "item":
-                Item item = Item.getItemByID(id);
+                Item item = Item.getItemByID(id, true, false);
                 redirectID = item.getMenu().getTruck().getId();
                 r = item;
                 review = new ItemReview();
@@ -66,7 +66,7 @@ public class AddReviewServlet extends HttpServlet {
             r.addReview(review);
             review.save();
             try {
-                resp.sendRedirect("truck.jsp?id=" + redirectID);
+                resp.sendRedirect("truck.jsp?truck=" + redirectID);
             } catch (IOException ex) {
                 
             }

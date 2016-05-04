@@ -5,6 +5,7 @@
  */
 package edu.temple.tutrucks;
 
+import java.util.HashSet;
 import java.util.Set;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -27,9 +28,9 @@ public class TagTest {
     
     @BeforeClass
     public static void setUpClass() {
-        realTag = new Tag();
-        realTag.setTagName(TAGNAME);
-        realTag.save();
+        System.out.println("tag setting up");
+        realTag = Tag.retrieveTag(TAGNAME, true);
+        System.out.println("tag setup");
     }
     
     @AfterClass
@@ -50,15 +51,14 @@ public class TagTest {
     //
     // @Test
     // public void hello() {}
-    
+    /*
     @Test
     public void testAddEntityTruck() {
         Tag fakeTag = new Tag();
         Truck truck = new Truck();
         fakeTag.addEntity(truck);
         assertTrue(fakeTag.getTrucks().contains(truck));
-        assertTrue(truck.getTags().contains(fakeTag));
-    }
+    } 
     
     @Test
     public void testAddEntityItem() {
@@ -67,15 +67,19 @@ public class TagTest {
         fakeTag.addEntity(item);
         assertTrue(fakeTag.getItems().contains(item));
         assertTrue(item.getTags().contains(fakeTag));
-    }
+    } */
     
     @Test
     public void testGetAllTaggedEntitiesAndNumEntities() {
         Tag fakeTag = new Tag();
         Truck truck = new Truck();
         Item item = new Item();
-        fakeTag.addEntity(truck);
-        fakeTag.addEntity(item);
+        Set<Truck> truckSet = new HashSet<>();
+        truckSet.add(truck);
+        Set<Item> itemSet = new HashSet<>();
+        itemSet.add(item);
+        fakeTag.setTrucks(truckSet);
+        fakeTag.setItems(itemSet);
         Set<Taggable> entities = fakeTag.getAllTaggedEntities();
         assertEquals(entities.size(), fakeTag.numEntities());
         assertTrue(entities.contains(truck));

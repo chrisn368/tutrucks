@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
 
@@ -19,7 +20,7 @@ import org.hibernate.Session;
  * @version %PROJECT_VERSION%
  * 
  */
-public class Tag implements java.io.Serializable, java.lang.Comparable, Searchable {
+public class Tag implements java.io.Serializable, java.lang.Comparable, Searchable, Modifiable {
 
      private int id;
      private String tagName;
@@ -30,17 +31,14 @@ public class Tag implements java.io.Serializable, java.lang.Comparable, Searchab
       * Required empty constructor. 
       */
     public Tag() {
-        this.items = new HashSet<>();
-        this.trucks = new HashSet<>();
     }
     /**
      * Constructor that builds a tag object with just its name. Required by Hibernate.
      * @param tagName the name of this Tag object
      */
     public Tag(String tagName) {
+       this();
        this.tagName = tagName;
-       this.items = new HashSet<>();
-       this.trucks = new HashSet<>();
     }
     /**
      * Returns the ID of this tag object. Required by Hibernate.
@@ -82,8 +80,7 @@ public class Tag implements java.io.Serializable, java.lang.Comparable, Searchab
      * @param items the set of food items associated with this tag
      */
     public void setItems(Set<Item> items) {
-        this.items.clear();
-        this.items.addAll(items);
+        this.items = items;
     }
     /**
      * Attaches a taggable entity to this tag. 
@@ -91,12 +88,10 @@ public class Tag implements java.io.Serializable, java.lang.Comparable, Searchab
      */
     public void addEntity(Truck t) {
         trucks.add(t);
-        if (!t.getTags().contains(this)) t.addTags(this);
     }
     
     public void addEntity(Item i) {
         items.add(i);
-        if (!i.getTags().contains(this)) i.addTags(this);
     }
     /**
      * Returns the set of trucks associated with this tag. Required by Hibernate.
@@ -110,8 +105,7 @@ public class Tag implements java.io.Serializable, java.lang.Comparable, Searchab
      * @param trucks the set of trucks associated with this tag
      */
     public void setTrucks(Set<Truck> trucks) {
-        this.trucks.clear();
-        this.trucks.addAll(trucks);
+        this.trucks = trucks;
     }
     /**
      * Returns all entities associated with this tag.
@@ -119,8 +113,10 @@ public class Tag implements java.io.Serializable, java.lang.Comparable, Searchab
      */
     public Set<Taggable> getAllTaggedEntities() {
         Set<Taggable> retval = new HashSet();
-        retval.addAll(items);
-        retval.addAll(trucks);
+        if (this.getItems() != null)
+            retval.addAll(this.getItems());
+        if (this.getTrucks() != null)
+            retval.addAll(this.getTrucks());
         return retval;
     }
     /**
@@ -128,7 +124,7 @@ public class Tag implements java.io.Serializable, java.lang.Comparable, Searchab
      * @return the number of entities associated with this tag
      */
     public int numEntities() {
-        return items.size() + trucks.size();
+        return this.getItems().size() + this.getTrucks().size();
     }
     /**
      * Compares the tags based on their popularity first, then their name.
@@ -210,32 +206,47 @@ public class Tag implements java.io.Serializable, java.lang.Comparable, Searchab
         if (retval == null && createIfDoesNotExist) {
             Tag aretval = new Tag(name);
             aretval.save();
-            return aretval;
+            return aretval.loadTaggedEntities();
         } else {
-            return retval;
+            return retval.loadTaggedEntities();
         }
     }
     /**
      * Saves this tag object to the database and assigns it an ID value.
      */
+    @Override
     public void save() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
         session.saveOrUpdate(this);
+        for (Taggable t : this.getAllTaggedEntities()) session.saveOrUpdate(t);
         session.getTransaction().commit();
         session.close();
     }
     /**
      * Removes this tag object from the database.
      */
+    @Override
     public void delete() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
         session.delete(this);
+        for (Taggable t : this.getAllTaggedEntities()) session.saveOrUpdate(t);
         session.getTransaction().commit();
         session.close();
     }
 
+    public Tag loadTaggedEntities() {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        Tag retval = (Tag) session.get(Tag.class, this.getId());
+        Hibernate.initialize(retval.getTrucks());
+        Hibernate.initialize(retval.getItems());
+        session.getTransaction().commit();
+        session.close();
+        retval.numEntities();
+        return retval;
+    }
 }
 
 

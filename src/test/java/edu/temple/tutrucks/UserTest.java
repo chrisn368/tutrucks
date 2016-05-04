@@ -12,14 +12,27 @@ package edu.temple.tutrucks;
  */
 
 import java.util.Arrays;
+import java.util.Date;
 import org.junit.*;
 import static org.junit.Assert.*;
 
 
-public class UserTest extends IntegrationTestUsingResources {
+public class UserTest {
     private ItemReview itemReview;
     private TruckReview truckReview;  
     private User user;
+    private static User realUser;
+    private static final String EMAIL = "usertest@test.com";
+    
+    @BeforeClass
+    public static void setup() {
+        realUser = User.createUser(EMAIL, "password", false, null, null, null);
+    }
+    
+    @AfterClass
+    public static void tearDown() {
+        realUser.delete();
+    }
     
     @Before
     public void setUpMock() {
@@ -34,35 +47,10 @@ public class UserTest extends IntegrationTestUsingResources {
         assertNotNull(truckReview);
         assertNotNull(itemReview);
     }
-
-   @Test
-    public void testAddItemReview() {
-        itemReview.setUser(user);
-        user.addReview(itemReview);
-        System.out.println("Verifying that the item review was added to the user list");
-        assertEquals(user.getItemReviews().get(0), itemReview);
-    }
-    
-    @Test
-    public void testAddTruckReview() {
-        truckReview.setUser(user);
-        user.addReview(truckReview);
-        System.out.println("Verifying that the truck review was added to the user list");
-        assertEquals(user.getTruckReviews().get(0), truckReview);
-    }
-   
-    @Test
-    public void testAddReviewFailed() {
-        User temp = new User();
-        itemReview.setUser(temp);
-        user.addReview(itemReview);
-        System.out.println("Verifying that the item review was not added to the user list");
-        assertEquals(user.getTruckReviews().contains(itemReview), false);
-    }
     
     @Test
     public void testCreateUser() {
-        assertEquals(IntegrationTestResources.EMAIL, IntegrationTestResources.getTestUser().getUserEmail());
+        assertEquals(EMAIL, realUser.getUserEmail());
     }
     
     @Test
@@ -77,15 +65,15 @@ public class UserTest extends IntegrationTestUsingResources {
     
     @Test
     public void testValidateUser() {
-        User testUser = User.validateUser(IntegrationTestResources.EMAIL, IntegrationTestResources.PASSWORD);
-        assertEquals(IntegrationTestResources.getTestUser(), testUser);
+        User testUser = User.validateUser(EMAIL, "password");
+        assertEquals(realUser, testUser);
     }
     
     @Test
     public void testValidateUserMultiple() {
         for (int i=0; i < 5; i++) {
-            User testUser = User.validateUser(IntegrationTestResources.EMAIL, IntegrationTestResources.PASSWORD);
-            assertEquals(IntegrationTestResources.getTestUser(), testUser);
+            User testUser = User.validateUser(EMAIL, "password");
+            assertEquals(realUser, testUser);
         }
     }
     
@@ -98,6 +86,59 @@ public class UserTest extends IntegrationTestUsingResources {
         assertFalse(Arrays.equals(testUserSalt, testUser.getSalt()));
         assertFalse(Arrays.equals(testUserPassword, testUser.getPassWord()));
         testUser.delete();
+    }
+    
+    @Test
+    public void testLoadReviews() {
+        Truck truck = Truck.getTruckByID(1);
+        TruckReview tr = new TruckReview();
+        Item item = Item.getItemByID(1);
+        ItemReview ir = new ItemReview();
+        tr.setReviewText("test");
+        tr.setReviewStars(5);
+        tr.setReviewDate(new Date());
+        tr.setUser(realUser);
+        tr.setTruck(truck);
+        ir.setReviewText("test");
+        ir.setReviewStars(5);
+        ir.setReviewDate(new Date());
+        ir.setUser(realUser);
+        ir.setItem(item);
+        tr.save();
+        ir.save();
+        realUser.loadUserReviews();
+        assertTrue(realUser.getTruckReviews().contains(tr));
+        assertTrue(realUser.getItemReviews().contains(ir));
+        User realUser2 = User.loadUserByID(realUser.getId(), true);
+        assertTrue(realUser2.getTruckReviews().contains(tr));
+        assertTrue(realUser2.getItemReviews().contains(ir));
+    }
+    
+    @Test
+    public void testCreateUserBad() {
+        String badEmail = "badEmail";
+        String goodEmail = "goodEmail@test.com";
+        String shortPass = "p";
+        String longPass = "this is a very long password, far too long, absurdly long, why would you ever make a password this long?";
+        try {
+            User.createUser(badEmail, "whatever",false, null, null, null);
+            fail();
+            return;
+        } catch (IllegalArgumentException ex) {}
+        try {
+            User.createUser(goodEmail, shortPass, false, null, null, null);
+            fail();
+            return;
+        } catch (IllegalArgumentException ex) {}
+        try {
+            User.createUser(goodEmail, longPass, false, null, null, null);
+            fail();
+            return;
+        } catch (IllegalArgumentException ex) {}
+        try {
+            User.createUser(EMAIL, "whatever", false, null, null, null);
+            fail();
+        } catch (IllegalArgumentException ex) {}
     }
 }
 

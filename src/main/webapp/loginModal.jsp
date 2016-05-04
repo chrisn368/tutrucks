@@ -38,7 +38,7 @@
                                                        document.getElementById("facebook_id_l").value = response.id;
                                                        document.getElementById("display_l").value=response.name;
                                                        document.getElementById("avatar_l").value=response.picture.data.url;
-                                                       ("#submitButton").click();
+                                                       $("#submitButton").click();
                                                 });
                                                 //var uid = response.authResponse.userID;
                                                 //var accessToken = response.authResponse.accessToken;

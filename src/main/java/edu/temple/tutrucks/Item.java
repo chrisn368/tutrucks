@@ -2,10 +2,12 @@ package edu.temple.tutrucks;
 // Generated Feb 15, 2016 6:30:46 PM by Hibernate Tools 4.3.1
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
 
@@ -17,21 +19,20 @@ import org.hibernate.Session;
  * @author Nick Dell'Osa
  * @version %PROJECT_VERSION%
  */
-public class Item implements java.io.Serializable, Reviewable, Taggable, Searchable {
+public class Item implements java.io.Serializable, Reviewable, Taggable, Searchable, Modifiable {
 
 
      private int id;
      private String itemName;
      private double price;
      private Menu menu;
-     private List<ItemReview> itemReviews = new ArrayList();
-     private Set<Tag> tags = new TreeSet();
+     private List<ItemReview> itemReviews;
+     private Set<Tag> tags;
 
      /**
      * Required empty constructor.
      */
     public Item() {
-        
     }
 
     /**
@@ -113,11 +114,7 @@ public class Item implements java.io.Serializable, Reviewable, Taggable, Searcha
      */
     @Override
     public void addReview(Review r) {
-        if (!r.getReviewed().equals(this)) {
-            //error handling
-            return;
-        }
-        itemReviews.add((ItemReview)r);
+        r.setReviewed(this);
     }
     /**
      * Returns a set of tags associated with this item. Required by Hibernate
@@ -134,8 +131,7 @@ public class Item implements java.io.Serializable, Reviewable, Taggable, Searcha
     @Override
     public void addTags(Tag... t) {
         for (Tag x : t) {
-            tags.add(x);
-            if (!x.getItems().contains(this)) x.addEntity(this);
+            x.addEntity(this);
         }
     }
     /**
@@ -143,15 +139,15 @@ public class Item implements java.io.Serializable, Reviewable, Taggable, Searcha
      * @param itemReviews the list of reviews for this item
      */
     public void setItemReviews(List<ItemReview> itemReviews) {
-        this.itemReviews.clear();
-        this.itemReviews.addAll(itemReviews);
+        this.itemReviews = itemReviews;
+        this.removeNullReviews();
     }
     /**
      * Sets the set of tags associated with this item. Required by Hibernate
      * @param tags the set of tags associated with this item.
      */
     public void setTags(Set tags) {
-        this.tags.addAll(tags);
+        this.tags = tags;
     }
 
     @Override
@@ -179,7 +175,7 @@ public class Item implements java.io.Serializable, Reviewable, Taggable, Searcha
 
     @Override
     public int getScore() {
-        if (itemReviews.isEmpty())
+        if (itemReviews == null || itemReviews.isEmpty())
             return 0;
         double score = 0.0;
         for (ItemReview ir : itemReviews) {
@@ -188,56 +184,60 @@ public class Item implements java.io.Serializable, Reviewable, Taggable, Searcha
         score /= (double)itemReviews.size();
         return (int) Math.round(score);
     }
-    
+
     @Override
-    public List<ItemReview> reloadReviews() {
+    public Item loadReviews() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
-        Query q = session.createQuery(
-                "from ItemReview where item.id=" + this.id + " order by reviewDate desc"
-        );
-        List l = q.list();
+        Item retval = (Item) session.get(Item.class, this.getId());
+        Hibernate.initialize(retval.getItemReviews());
+        session.getTransaction().commit();
         session.close();
-        ArrayList<ItemReview> revs = new ArrayList<>(l.size());
-        for (Object o : l) revs.add((ItemReview)o);
-        this.setItemReviews(revs);
-        return this.itemReviews;
+        retval.getItemReviews().size();
+        this.setItemReviews(retval.getItemReviews());
+        return retval;
     }
 
     @Override
-    public List<ItemReview> loadReviews() {
-        if (this.itemReviews.isEmpty() || !this.reviewsValid())
-            return this.reloadReviews();
-        else
-            return this.itemReviews;
-    }
-
-    @Override
-    public Set<Tag> loadTags() {
+    public Item loadTags() {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
-        Query q = session.createQuery("from Tag t join t.items it where it.id = " + this.getId());
-        List l = q.list();
+        Item retval = (Item) session.get(Item.class, this.getId());
+        Hibernate.initialize(retval.getTags());
+        session.getTransaction().commit();
         session.close();
-        for (Object o : l) {
-            if (o instanceof Tag) this.addTags((Tag)o);
-        }
-        return this.tags;
+        retval.getTags().size();
+        this.setTags(retval.getTags());
+        return retval;
     }
     /**
      * Retrieves the item with the specified id.
      * @param id the id of the Item object to retrieve.
+     * @param loadReviews true if you want to load reviews with this item object, false otherwise
+     * @param loadTags true if you want to load tags with this item object, false otherwise
      * @return the item with the specified id
      */
-    public static Item getItemByID(int id) {
+    public static Item getItemByID(int id, boolean loadReviews, boolean loadTags) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
         Query q = session.createQuery(
-                "from Item where id='" + id + "'"
+                "from Item where id=" + id
         );
         Item retval = (Item) q.uniqueResult();
+        if (loadReviews) {
+            Hibernate.initialize(retval.getItemReviews());
+            retval.getItemReviews().size();
+        }
+        if (loadTags) {
+            Hibernate.initialize(retval.getTags());
+            retval.getTags().size();
+        }
         session.close();
         return retval;
+    }
+    
+    public static Item getItemByID(int id) {
+        return Item.getItemByID(id, false, false);
     }
     
     @Override
@@ -259,15 +259,37 @@ public class Item implements java.io.Serializable, Reviewable, Taggable, Searcha
         hash = 53 * hash + (int) (Double.doubleToLongBits(this.price) ^ (Double.doubleToLongBits(this.price) >>> 32));
         return hash;
     }
-    
+
     @Override
-    public boolean reviewsValid() {
-        for (ItemReview r : itemReviews) {
-            if (!(r.getItem().equals(this) && r.getReviewText() != null)) {
-                return false;
+    public void removeNullReviews() {
+        if (this.getItemReviews() != null) {
+            for (int i=0; i < this.getItemReviews().size(); i++) {
+                if (this.getItemReviews().get(i) == null) this.getItemReviews().remove(i);
             }
         }
-        return true;
+    }
+
+    @Override
+    public void save() {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        session.saveOrUpdate(this);
+        session.getTransaction().commit();
+        session.close();
+    }
+
+    @Override
+    public void delete() {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        session.beginTransaction();
+        Item item = (Item) session.get(Item.class, this.getId());
+        Hibernate.initialize(item.getItemReviews());
+        for (ItemReview ir : item.itemReviews) 
+            session.delete(ir);
+        
+        session.delete(item);
+        session.getTransaction().commit();
+        session.close();
     }
 
 }

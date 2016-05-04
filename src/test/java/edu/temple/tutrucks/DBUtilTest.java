@@ -69,4 +69,29 @@ public class DBUtilTest {
             fail();
         }
     }
+    
+    @Test
+    public void testGetByTag() {
+        Tag dbutilTag1 = Tag.retrieveTag("dbUtilsTag1", true);
+        Tag dbutilTag2 = Tag.retrieveTag("dbUtilsTag2", true);
+        Truck realTruck1 = Truck.getTruckByID(1);
+        Truck realTruck2 = Truck.getTruckByID(2);
+        Item realItem = Item.getItemByID(1);
+        String truck2Name = realTruck2.getTruckName();
+        dbutilTag1.addEntity(realTruck1);
+        dbutilTag1.addEntity(realItem);
+        dbutilTag2.addEntity(realTruck2);
+        dbutilTag1.save();
+        dbutilTag2.save();
+        List<Searchable> results1 = DBUtils.searchAll(null, "dbUtilsTag1,dbUtilsTag2");
+        assertTrue(results1.contains(realTruck1));
+        assertTrue(results1.contains(realTruck2));
+        assertTrue(results1.contains(realItem));
+        List<Searchable> results2 = DBUtils.searchAll(truck2Name, "dbUtilsTag1,dbUtilsTag2");
+        assertTrue(results2.contains(realTruck2));
+        assertFalse(results2.contains(realTruck1));
+        assertFalse(results2.contains(realItem));
+        dbutilTag1.delete();
+        dbutilTag2.delete();
+    }
 }

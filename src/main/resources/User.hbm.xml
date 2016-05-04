@@ -19,20 +19,18 @@
     <property name="avatar" type="string">
       <column length="511" name="avatar"/>
     </property>
-    <list fetch="select" inverse="true" lazy="true" name="itemReviews" table="item_review">
+    <bag fetch="select" inverse="true" lazy="true" name="itemReviews" table="item_review">
       <key>
         <column name="user_id"/>
       </key>
-      <list-index column="review_date"/>
       <one-to-many class="edu.temple.tutrucks.ItemReview"/>
-    </list>
-    <list fetch="select" inverse="true" lazy="true" name="truckReviews" table="truck_review">
+    </bag>
+    <bag fetch="select" inverse="true" lazy="true" name="truckReviews" table="truck_review">
       <key>
         <column name="user_id"/>
       </key>
-      <list-index column="review_date"/>
       <one-to-many class="edu.temple.tutrucks.TruckReview"/>
-    </list>
+    </bag>
     <property name="displayName" type="string">
       <column name="display_name"/>
     </property>

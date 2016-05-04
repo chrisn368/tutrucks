@@ -5,7 +5,7 @@
  */
 package edu.temple.controller;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import edu.temple.tutrucks.Truck;
@@ -34,18 +34,17 @@ public class TruckReviewFetchServlet extends HttpServlet {
         
         try {
             int truckID = Integer.parseInt(req.getParameter("criteria"));
-            int minReview = Integer.parseInt(req.getParameter("start"));
-            int maxReview = Integer.parseInt(req.getParameter("end"));
-            Truck t = Truck.getTruckByID(truckID);
-            
-            List<TruckReview> reviews1 = t.loadReviews();
+            int minReview = req.getParameter("start") == null ? 0 : Integer.parseInt(req.getParameter("start"));
+            int maxReview = req.getParameter("end") == null ? 100 : Integer.parseInt(req.getParameter("end"));
+            Truck t = Truck.getTruckByID(truckID, true, false);
+            List<TruckReview> reviews1 = t.getTruckReviews();
             String s;
             if (minReview>=reviews1.size()){
                 minReview=0;
                 maxReview=-1;
-            };
-            if (maxReview>=reviews1.size()) maxReview=reviews1.size()-1;
-            List<TruckReview> reviews = reviews1.subList(minReview, maxReview-minReview+1);
+            }
+            if (maxReview>=reviews1.size()) maxReview=reviews1.size();
+            List<TruckReview> reviews = reviews1.subList(minReview, maxReview);
             
             JsonArray array = new JsonArray();
             for (TruckReview rev : reviews) {
@@ -58,14 +57,14 @@ public class TruckReviewFetchServlet extends HttpServlet {
                     userInfo.addProperty("name", rev.getUser().getDisplayName());
                     userInfo.addProperty("email", rev.getUser().getUserEmail());
                     userInfo.addProperty("avatar", rev.getUser().getAvatar());
+                    userInfo.addProperty("uid", rev.getUser().getId());
                     revObj.add("userinfo", userInfo);
                     array.add(revObj);
                 }
             }
             
-            Gson gson = new Gson();
+            Gson gson = new GsonBuilder().serializeNulls().create();
             s = gson.toJson(array);
-            System.out.println(s);
             resp.getWriter().print(s);
         } catch (Exception e) {
             System.err.println(e.getMessage());

@@ -27,24 +27,36 @@
         var modal = $(this);
         var innerString="";
         $("#reviews").replaceWith("<div id='reviews' class='modal-body'> </div>");
+        <% if (user==null)out.print("/*");%>
+        innerString+="<div class='row'>";
+        innerString+="<a style='color: black;' href=newreview.jsp?type=truck&id="+recipient+">Click here to leave a review</a><br>";
+        innerString+="</div>";
+        innerString+="<hr />";
+        <% if (user==null)out.print("*/");%>
         $.ajax("fetchTrucks", {
             method: "GET",
             dataType: "json",
             data: {criteria:recipient, start: 0, end: 20},
             success: function (data){
-                
                 for (var i=0;i<data.length;i++){
                     
+                    innerString+="<div class='row borders'>";
                     innerString+="<div class='row'>";
-                    innerString+="<div class='row'>";
-                    innerString+="<div class='col'>";
-                    //Profile Picture
-                    innerString+="</div>";
-                    innerString+="<div class='col'>";
+                    innerString+="<a href=profile.jsp?userid=";
+                    innerString+=[data[i]["userinfo"]["uid"]];
+                    innerString+=">";
+                    innerString+="<img class = 'avatar' src='";
+                    innerString+=[data[i]["userinfo"]["avatar"]];
+                    if ([data[i]["userinfo"]["avatar"]]== null||[data[i]["userinfo"]["avatar"]]=="") {
+                        innerString+="images/NoUserPhoto.png";
+                    }else innerString+=[data[i]["userinfo"]["avatar"]];
+                    
+                    innerString+="'alt='No user avatar' width='32px' height='32px'/> ";
+                    innerString+="</a>";
                     avgRating=[data[i]["stars"]];
                     fullStars=avgRating/2;
                     halfStars=avgRating%2;
-                    innerString+="Reviews: ";
+                    innerString+="Rating: ";
                     if (avgRating===0){
                         innerString+="None";
                     }
@@ -55,19 +67,29 @@
                         innerString+="<img src='images/Star_Half.png' width='12' height='24'>";
                     }
                     innerString+="</div>";
-                    innerString+="</div>";
-                    innerString+="<div class='row'>";
+                    innerString+="<div class='row-fluid'>";
+                    innerString+="<p style='word-wrap: break-word; padding-left=20px;padding-left=20px;'>";
                     innerString+=[data[i]["text"]];
+                    innerString+="</p>";
                     innerString+="</div>";
-                    innerString+="<div class='row userAndDate'>";
+                    innerString+="<a href=profile.jsp?userid=";
+                    innerString+=[data[i]["userinfo"]["uid"]];
+                    innerString+=">";
+                    innerString+="<div class='row userAndDate' style='color:black'>";
+                    innerString+="Reviewed by ";
+                    innerString+=[data[i]["userinfo"]["name"]];
+                    innerString+=" on ";
                     innerString+=[data[i]["date"]];
                     innerString+="</div>";
+                    innerString+="</a>";
+                    innerString+="<br />";
                     innerString+="</div>";
+                    innerString+="<br />"
                     
                     
                 }
                 if (i===0){
-                    innerString+="NONE";
+                    innerString+="No Reviews";
                 }
                 $("#reviews").append(innerString);
             },

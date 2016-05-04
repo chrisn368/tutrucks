@@ -8,6 +8,10 @@ a:focus,
 a:hover {
   color: #fff;
 }
+/* bottom border for reviews*/
+.borders{
+    border-bottom:1px solid #999;
+}
 
 /* Custom default button */
 .btn-default,

@@ -62,7 +62,7 @@
         <div class="col-lg-8" style="text-align: left;">
             <h1 style="color: white;"><%=truckName%></h1>
             <p style="color: white"><%
-                    Set<Tag> tags = truck.loadTags();
+                    Set<Tag> tags = truck.loadTags().getTags();
                     if (!(tags.isEmpty() && user == null)) {
                         out.print("Tags: <span><span id='current_tags'>");
                         if (!tags.isEmpty()) {
@@ -79,11 +79,38 @@
                         }
                         if (user != null) {
                             out.print("</span><a id='tag_adder' href='#'>add tags...</a>"
-                                + "<input type='text' id='tag_add_field' hidden />"
+                                + "<input type='text' id='tag_add_field' style='color: black;' hidden />"
                                 + "<input type='button' title='Enter new tags, separated by commas' id='tag_add_button' hidden /></span>");
                         }
                     }
                     %></p>
+            <p style="color:white">
+                <%
+                boolean morning=true;
+                int openingHours=truck.getOpeningTime().getHours();
+                int openingMinutes=truck.getOpeningTime().getMinutes();
+                if (openingHours>12){
+                    morning =false;
+                    openingHours-=12;
+                }if (openingHours==0) openingHours=12;
+                out.print(openingHours+":"+openingMinutes);
+                if(openingMinutes==0) out.print("0");
+                if (morning)out.print(" AM");
+                else out.print(" PM");
+                out.print(" - ");
+                int closingHours=truck.getClosingTime().getHours();
+                int closingMinutes=truck.getClosingTime().getMinutes();
+                if (closingHours>12){
+                    morning =false;
+                    closingHours-=12;
+                }if (closingHours==0) closingHours=12;
+                out.print(closingHours+":"+closingMinutes);
+                if(closingMinutes==0) out.print("0");
+                if (morning)out.print(" AM");
+                else out.print(" PM");
+                
+                %>
+            </p>
         </div>
         <div class="col-lg-4" style="text-align: right;">
             <h1 class ="click" style="color: white" data-toggle="modal" data-target="#truckModal" 
@@ -117,8 +144,8 @@
     <div class="container" style="padding-bottom: 10px;">
         <div class="row-fluid">
             <div class="col-md-3">
-                <button type="button" id="more" class="btn btn-primary mapButton" data-toggle="collapse" data-target="#collapseMap">
-                    <strong><span class="glyphicon glyphicon-chevron-up"></span> Hide Map</strong>
+                <button type="button" id="more" onclick="toggleClass()" class="btn btn-primary mapButton">
+                    <strong><span id="change" class="glyphicon glyphicon-chevron-up"></span> Hide Map</strong>
                 </button>
                 <button type="button" class="btn btn-primary mapButton" onclick="getDirections();"><strong>Get Directions</strong></button>
             </div>
@@ -181,16 +208,28 @@
                             out.print(NumberFormat.getCurrencyInstance(new Locale("en", "US")).format(price));
                         %>
                     </div>
-                    <div class="col-lg-2 click" data-toggle="modal" data-target="#itemModal" data-truckid="<%=itemID%>">
+                    <div class="col-lg-2 click" data-toggle="modal" data-target="#itemModal" style="text-align: left" data-itemid="<%=itemID%>">
                         <%
                             double stars = 0.0;
                             double averageStars = 0.0;
                             List<ItemReview> reviews = item.getItemReviews();
-                        
                             if (reviews.size() > 0) {
-                                stars = item.getScore();
-                                averageStars = stars / 2;
-                                out.print(averageStars);
+                                avgRating = item.getScore();
+                                fullStars=avgRating/2;
+                                halfStars=avgRating%2;
+                                if (avgRating==0){
+                                    out.print("Rating: 0");
+                                }
+                                for (int i=0;i<fullStars;i++){
+                                    out.print("<img src='images/Star_Full.png' width='16' height='16'>");
+                                }
+                                if (halfStars==1){
+                                    out.print("<img src='images/Star_Half.png' width='8' height='16'>");
+                                }
+                                
+                                
+                            }else{
+                                out.print("No Reviews");
                             }
                         %>
                     </div>                                   
@@ -217,7 +256,6 @@
         $("#tag_add_button").click(function () {
             var addTag = $("#tag_add_field").val();
             if (addTag) {
-                console.log("making ajax call for " + addTag);
                 $.ajax("addtags", {
                     method: "POST",
                     dataType: "json",
@@ -225,19 +263,19 @@
                     success: function (data) {
                         var result = "";
                         for (var i=0; i < data.length; i++) {
-                            result += ("<a class='taglinks' href='search.jsp?tagged=" + data[i] + ">"
+                            result += ("<a class='taglinks' href='search.jsp?tagged=" + data[i] + "'>"
                                    + data[i] + "</a>, ");
                         }
                         $("#current_tags").html(result);
+                        $("#tag_add_field").val("");
                     },
                     error: function(jqHXR, status, error) {
                     
                     }
                 });
-            } else {
-                $("#tag_add_field").hide();
-                $("#tag_add_button").hide();
             }
+            $("#tag_add_field").hide();
+            $("#tag_add_button").hide();
         });
     });
     </script>

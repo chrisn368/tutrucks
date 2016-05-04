@@ -1,6 +1,7 @@
 var map;
 var userLocation;
 var truckLocation;
+var marker;
 function initMap() {
     //MAP SETUP
     templeCenter = {lat: 39.981478, lng: -75.155124};
@@ -9,7 +10,11 @@ function initMap() {
         zoom: 18,
         center: truckLocation
     });
-
+    
+    google.maps.event.addDomListener(window, "resize", function () {
+        reinitialize();
+    });
+    
     //GET USER LOCATION
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function (position) {
@@ -29,7 +34,7 @@ function initMap() {
     }
 
     var infowindow = new google.maps.InfoWindow();
-    var marker = new google.maps.Marker({
+    marker = new google.maps.Marker({
         position: {lat: truck.lat, lng: truck.lng},
         animation: google.maps.Animation.DROP,
         title: truck.name
@@ -44,7 +49,14 @@ function initMap() {
 
 }
 ;
-
+    //google.maps.event.addDomListener(window, 'load', initMap);
+    
+function reinitialize() {
+    google.maps.event.trigger(map, "resize");
+    marker.setMap(map);
+    map.setCenter(truckLocation);
+}
+    
 function getDirections() {
     if (userLocation == null) {
         alert("Sorry, your location could not be found or was denied.");
@@ -54,18 +66,17 @@ function getDirections() {
     }
 }
 
-$('#more').click(function () {
+function toggleClass() {
     if ($('button span').hasClass('glyphicon-chevron-down'))
     {
         $('#more').html('<strong><span class="glyphicon glyphicon-chevron-up"></span> Hide Map</strong>');
+        $( "#collapseMap" ).slideToggle( "slow" );
+        reinitialize();
     } else
     {
         $('#more').html('<strong><span class="glyphicon glyphicon-chevron-down"></span> Show Map</strong>');
+        $( "#collapseMap" ).slideToggle( "slow" );
+        reinitialize();
+        //google.maps.event.trigger(map, "resize");
     }
-});
-
-$(window).resize(function () {
-    var h = $(window).height();
-    $('#map').css('height', (h * .40));
-    map.setCenter(truckLocation);
-}).resize();
+}
